@@ -11,22 +11,7 @@ define([], function() {
     "https://maps.googleapis.com/maps/api/js?key=" +
     API_KEY +
     "&libraries=places";
-  // Google API map fields
-  const ADDRESS_COMPONENTS = {
-    street_number: "short_name",
-    route: "long_name",
-    locality: "long_name",
-    administrative_area_level_1: "short_name",
-    postal_code: "short_name"
-  };
-  // Config Address Form
-  const ADDRESS_FIELDS = {
-    street_number: "addr2",
-    route: "addr3",
-    administrative_area_level_1: "inpt_dropdownstate2",
-    locality: "city",
-    postal_code: "zip"
-  };
+  const SCRIPT_ID = "google_api_address_client_script_2x";
 
   /* === EVENTS FUNCTIONS === */
 
@@ -47,28 +32,22 @@ define([], function() {
         var autocomplete = new google.maps.places.Autocomplete(inputAddress, {
           types: ["geocode"]
         });
+        // Set initial restrict to the greater list of countries.
+        autocomplete.setComponentRestrictions({
+          country: ["us", "pr", "vi", "gu", "mp"]
+        });
         google.maps.event.addListener(
           autocomplete,
           "place_changed",
           function fillInAddress() {
+            resetUI(currentRecord);
             // Callback when user choosed address
             var place = autocomplete.getPlace();
-            // Fill Address Form
-            for (var i = 0; i < place.address_components.length; i++) {
-              var addressType = place.address_components[i].types[0];
-              if (ADDRESS_COMPONENTS[addressType]) {
-                var val =
-                  place.address_components[i][ADDRESS_COMPONENTS[addressType]];
-                // Set Data
-                currentRecord.setValue({
-                  fieldId: ADDRESS_FIELDS[addressType],
-                  value: val
-                });
-              }
-            }
+            var address = parseAddress(place.address_components);
+            updateUI(currentRecord, address);
             currentRecord.setValue({
-              fieldId: 'addr1',
-              value: window.document.getElementById("addr1").value
+              fieldId: "addr1",
+              value: place.formatted_address
             });
           }
         );
@@ -92,13 +71,6 @@ define([], function() {
       addr2.isDisabled = true;
     }
 
-    var addr3 = currentRecord.getField({
-      fieldId: "addr3"
-    });
-    if (addr3) {
-      addr3.isDisabled = true;
-    }
-
     var inpt_dropdownstate2 = currentRecord.getField({
       fieldId: "inpt_dropdownstate2"
     });
@@ -119,6 +91,94 @@ define([], function() {
     if (zip) {
       zip.isDisabled = true;
     }
+  }
+
+  /**
+   * Update UI
+   * @param {*} currentRecord
+   */
+  function updateUI(currentRecord, address) {
+    if (address["addr1"] !== undefined && address["addr2"] !== undefined) {
+      currentRecord.setValue({
+        fieldId: "addr2",
+        value: address["addr1"] + " " + address["addr2"]
+      });
+    }
+
+    if (address["inpt_dropdownstate2"] !== undefined) {
+      currentRecord.setValue({
+        fieldId: "inpt_dropdownstate2",
+        value: address["inpt_dropdownstate2"]
+      });
+    }
+
+    if (address["city"] !== undefined) {
+      currentRecord.setValue({
+        fieldId: "city",
+        value: address["city"]
+      });
+    }
+
+    if (address["zip"] !== undefined) {
+      currentRecord.setValue({
+        fieldId: "zip",
+        value: address["zip"]
+      });
+    }
+  }
+
+  /**
+   * Reset UI
+   * @param {*} currentRecord
+   */
+  function resetUI(currentRecord) {
+    const FORM_FIELDS = [
+      "addr1",
+      "addr2",
+      "addr3",
+      "inpt_dropdownstate2",
+      "city",
+      "zip"
+    ];
+    for (var index = 0; index < FORM_FIELDS.length; index++) {
+      const fieldName = FORM_FIELDS[index];
+      currentRecord.setValue({
+        fieldId: fieldName,
+        value: ""
+      });
+    }
+  }
+
+  /**
+   * Parse Address
+   * @param {*} address_components
+   */
+  function parseAddress(address_components) {
+    var result = [];
+    // Google API map fields
+    const ADDRESS_COMPONENTS = {
+      street_number: "short_name",
+      route: "long_name",
+      locality: "long_name",
+      administrative_area_level_1: "short_name",
+      postal_code: "short_name"
+    };
+    // Config Address Form
+    const ADDRESS_FIELDS = {
+      street_number: "addr1",
+      route: "addr2",
+      administrative_area_level_1: "inpt_dropdownstate2",
+      locality: "city",
+      postal_code: "zip"
+    };
+    for (var i = 0; i < address_components.length; i++) {
+      var addressType = address_components[i].types[0];
+      if (ADDRESS_COMPONENTS[addressType]) {
+        var val = address_components[i][ADDRESS_COMPONENTS[addressType]];
+        result[ADDRESS_FIELDS[addressType]] = val;
+      }
+    }
+    return result;
   }
 
   /**

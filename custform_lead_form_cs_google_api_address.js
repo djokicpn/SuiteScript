@@ -7,111 +7,156 @@ define([], function() {
    */
 
   /* === VARS === */
-  const API_KEY = "***REMOVED***";
-  const GOOGLE_API =
-    "https://maps.googleapis.com/maps/api/js?key=" +
-    API_KEY +
-    "&libraries=places";
-  const HIDDEN_FORM = [
-    "street_number",
-    "route",
-    "locality",
-    "administrative_area_level_1",
-    "country",
-    "postal_code"
-  ];
-  const COMPONENT_FORM = {
-    street_number: "short_name",
-    route: "long_name",
-    locality: "long_name",
-    administrative_area_level_1: "short_name",
-    country: "long_name",
-    postal_code: "short_name"
-  };
+  const SCRIPT_ID = "custform_lead_form_cs_google_api_address";
 
   /* === EVENTS FUNCTIONS === */
+
+  /**
+   * Line Init
+   * @param {*} context
+   */
+  function lineInit(context) {
+    console.log(SCRIPT_ID, "lineInit Triggered!", context);
+    return;
+  }
 
   /**
    * Page Init
    * @param {*} context
    */
   function pageInit(context) {
-    var currentRecord = context.currentRecord;
+    console.log(SCRIPT_ID, "pageInit Triggered!", context);
+    return;
+  }
 
-    // Create Hidden Form
-    for (var index = 0; index < HIDDEN_FORM.length; index++) {
-      const element = HIDDEN_FORM[index];
-      createEl(element);
-    }
-    // inject google map js
-    var GoogleAPI = document.createElement("script");
-    GoogleAPI.src = GOOGLE_API;
-    document.head.appendChild(GoogleAPI);
-    // Run when google api load
-    GoogleAPI.onload = function() {
-      var inputAddress = window.document.getElementById(
-        "custentity_enter_address"
-      );
-      var autocomplete = new google.maps.places.Autocomplete(inputAddress, {
-        types: ["geocode"]
+  /**
+   * Post Sourcing
+   * @param {*} context
+   */
+  function postSourcing(context) {
+    console.log(SCRIPT_ID, "postSourcing Triggered!", context);
+    return;
+  }
+
+  /**
+   * Save Record
+   * @param {*} context
+   */
+  function saveRecord(context) {
+    console.log(SCRIPT_ID, "saveRecord Triggered!", context);
+    return true; //Return true if you want to continue saving the record.
+  }
+
+  /**
+   * Sublist Changed
+   * @param {*} context
+   */
+  function sublistChanged(context) {
+    const currentRecord = context.currentRecord;
+    const sublistId = context.sublistId;
+    const operation = context.operation;
+    console.log(SCRIPT_ID, "sublistChanged Triggered!", context);
+
+    if (sublistId === "addressbook" && operation === "remove") {
+      const defaultbilling = currentRecord.getCurrentSublistValue({
+        sublistId: sublistId,
+        fieldId: "defaultbilling"
       });
-      google.maps.event.addListener(
-        autocomplete,
-        "place_changed",
-        function fillInAddress() {
-          // Callback when user choosed address
-          var place = autocomplete.getPlace();
-          // Fill Address Form
-          // Get each component of the address from the place details,
-          // and then fill-in the corresponding field on the form.
-          for (var i = 0; i < place.address_components.length; i++) {
-            var addressType = place.address_components[i].types[0];
-            if (COMPONENT_FORM[addressType]) {
-              var val =
-                place.address_components[i][COMPONENT_FORM[addressType]];
-              document.getElementById(addressType).value = val;
-            }
-          }
-          document.getElementById("custentity_address_verification").value =
-            document.getElementById("street_number").value +
-            " " +
-            document.getElementById("route").value +
-            "\n" +
-            document.getElementById("locality").value +
-            " " +
-            document.getElementById("administrative_area_level_1").value +
-            " " +
-            document.getElementById("postal_code").value +
-            "\n" +
-            document.getElementById("country").value;
-        }
-      );
-    };
-
-    /**
-     * Verify Address click
-     */
-    document.getElementById("custformbutton0").onclick = function() {
-      if (document.getElementById("custentity6").value == "") {
-        document.getElementById("custentity_verified_address").value = "";
-        alert("Can't verify address");
-      } else {
-        document.getElementById("custentity_verified_address").value =
-          "Address Verified";
-        alert("Address was verified");
+      // Reset Default Value when remove address
+      if (defaultbilling) {
+        currentRecord.setValue({
+          fieldId: "defaultaddress",
+          value: ''
+        });
+        currentRecord.setValue({
+          fieldId: "custentity_address_verification",
+          value: ''
+        });
       }
-    };
+    }
+  }
 
+  /**
+   * Validate Delete
+   * @param {*} context
+   */
+  function validateDelete(context) {
+    const currentRecord = context.currentRecord;
+    const sublistId = context.sublistId;
+    const fieldId = context.fieldId;
+    const line = currentRecord.getCurrentSublistIndex({
+      sublistId: sublistId
+    });
+    console.log(SCRIPT_ID, "validateDelete Triggered!", context);
+    return true; //Return true if the line deletion is valid.
+  }
+
+  /**
+   * Validate Field
+   * @param {*} context
+   */
+  function validateField(context) {
+    const sublistId = context.sublistId;
+    const fieldId = context.fieldId;
+    const line = context.line;
+    const column = 0;
+    const currentRecord = context.currentRecord;
+    console.log(SCRIPT_ID, "validateField Triggered!", context);
+    return true; //Return true to continue with the change.
+  }
+
+  /**
+   * Validate Insert
+   * @param {*} context
+   */
+  function validateInsert(context) {
+    console.log(SCRIPT_ID, "validateInsert Triggered!", context);
+    return true; //Return true if the line insertion is valid.
+  }
+
+  /**
+   * Validate Line
+   * @param {*} context
+   */
+  function validateLine(context) {
+    console.log(SCRIPT_ID, "validateLine Triggered!", context);
+    return true; //Return true if the line is valid.
+  }
+
+  /**
+   * Field Changed
+   * @param {*} context
+   */
+  function fieldChanged(context) {
+    const sublistId = context.sublistId;
+    const fieldId = context.fieldId;
+    const line = context.line;
+    const column = 0;
+    const currentRecord = context.currentRecord;
+    console.log(SCRIPT_ID, "fieldChanged Triggered!", context);
+    if (fieldId === "defaultaddress") {
+      const defaultaddress = currentRecord.getValue({ fieldId: fieldId });
+      currentRecord.setValue({
+        fieldId: "custentity_address_verification",
+        value: formatAddressStandardization(defaultaddress)
+      });
+    }
     return;
   }
 
   /** HELPER FUNCTIONS **/
-  function createEl(name) {
-    var inputAddress = document.createElement("INPUT");
-    inputAddress.setAttribute("id", name);
-    inputAddress.setAttribute("type", "text");
-    document.body.appendChild(inputAddress);
-    document.getElementById(name).style.visibility = "hidden";
+  function formatAddressStandardization(address) {
+    address = address.split("\n");
+    var result = "";
+    if (address.length >= 4) {
+      address.splice(0, 1);
+      if (address.length === 4) {
+        address.splice(1, 1);
+      }
+    }
+
+    result = address.join("\n");
+    return result;
   }
 
   /**
@@ -119,5 +164,14 @@ define([], function() {
    */
   var exports = {};
   exports.pageInit = pageInit;
+  exports.lineInit = lineInit;
+  exports.postSourcing = postSourcing;
+  exports.saveRecord = saveRecord;
+  exports.sublistChanged = sublistChanged;
+  exports.validateDelete = validateDelete;
+  exports.validateField = validateField;
+  exports.validateInsert = validateInsert;
+  exports.validateLine = validateLine;
+  exports.fieldChanged = fieldChanged;
   return exports;
 });
