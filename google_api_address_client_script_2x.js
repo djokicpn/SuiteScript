@@ -3,6 +3,7 @@ define([], function() {
    * Add Google Autocomplete for Address
    * @NApiVersion 2.x
    * @NScriptType ClientScript
+   * @author trungpv <trung@lexor.com>
    */
 
   /* === VARS === */

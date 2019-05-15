@@ -4,6 +4,7 @@ define([], function() {
    * @NApiVersion 2.x
    * @NModuleScope Public
    * @NScriptType ClientScript
+   * @author trungpv <trung@lexor.com>
    */
 
   /* === VARS === */
@@ -66,11 +67,11 @@ define([], function() {
       if (defaultbilling) {
         currentRecord.setValue({
           fieldId: "defaultaddress",
-          value: ''
+          value: ""
         });
         currentRecord.setValue({
           fieldId: "custentity_address_verification",
-          value: ''
+          value: ""
         });
       }
     }
