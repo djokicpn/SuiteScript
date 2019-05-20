@@ -275,3 +275,13 @@ Type = {object}
     WORK_ORDER_ISSUE = {string} workorderissue
     WORKPLACE = {string} workplace
 ```
+
+### 2. Logging and Debugging
+
+- Note: This will show in exc log of script
+```
+	log.debug({
+		title   : '***** Title *****',
+		details : 'Description'
+	});
+```
