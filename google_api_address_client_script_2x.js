@@ -44,12 +44,14 @@ define([], function() {
             resetUI(currentRecord);
             // Callback when user choosed address
             var place = autocomplete.getPlace();
-            var address = parseAddress(place.address_components);
-            updateUI(currentRecord, address);
-            currentRecord.setValue({
-              fieldId: "addr1",
-              value: place.formatted_address
-            });
+            if (place.address_components !== undefined) {
+              var address = parseAddress(place.address_components);
+              updateUI(currentRecord, address);
+              currentRecord.setValue({
+                fieldId: "addr1",
+                value: place.formatted_address
+              });
+            }
           }
         );
       };
