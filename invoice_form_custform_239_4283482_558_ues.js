@@ -21,37 +21,44 @@ define(["N/record"], function(record) {
           isDynamic: true
         });
         const total = so.getValue("total");
-        if(total > 0) {
+        if (total > 0) {
           const totalLinks = so.getLineCount({ sublistId: "links" });
-        var totalDeposited = 0;
-        for (var index = 0; index < totalLinks; index++) {
-          var totalValue = so.getSublistValue({
-            sublistId: "links",
-            fieldId: "total",
-            line: index
-          });
-          var typeValue = so.getSublistValue({
-            sublistId: "links",
-            fieldId: "type",
-            line: index
-          });
-          var trandateValue = so.getSublistValue({
-            sublistId: "links",
-            fieldId: "trandate",
-            line: index
-          });
-          if (typeValue === "Customer Deposit") {
-            totalDeposited = totalDeposited + totalValue;
-            var totalDepositedPercent = (totalDeposited / total) * 100;
-            if(totalDepositedPercent >= 25) {
-              invoiceRecord.setValue({
-                fieldId: "saleseffectivedate",
-                value: trandateValue
+          var totalDeposited = 0;
+          for (var index = 0; index < totalLinks; index++) {
+            var id = so.getSublistValue({
+              sublistId: "links",
+              fieldId: "id",
+              line: index
+            });
+            var typeValue = so.getSublistValue({
+              sublistId: "links",
+              fieldId: "type",
+              line: index
+            });
+            if (typeValue === "Customer Deposit") {
+              var CD = record.load({
+                type: record.Type.CUSTOMER_DEPOSIT,
+                id: id
               });
-              break;
+              var custbody_date_deposited = CD.getValue("custbody_date_deposited");
+              if(custbody_date_deposited !== '') {
+                var totalValue = so.getSublistValue({
+                  sublistId: "links",
+                  fieldId: "total",
+                  line: index
+                });
+                totalDeposited = totalDeposited + totalValue;
+                var totalDepositedPercent = (totalDeposited / total) * 100;
+                if (totalDepositedPercent >= 25) {
+                  invoiceRecord.setValue({
+                    fieldId: "saleseffectivedate",
+                    value: custbody_date_deposited
+                  });
+                  break;
+                }
+              }
             }
           }
-        }
         }
       }
     }
