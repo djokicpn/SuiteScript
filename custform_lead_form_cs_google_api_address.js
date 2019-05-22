@@ -19,48 +19,51 @@ define([], function() {
     const sublistId = context.sublistId;
     const operation = context.operation;
 
-    if (sublistId === "addressbook" && operation === "remove") {
+    if (sublistId === "addressbook") {
       const defaultbilling = currentRecord.getCurrentSublistValue({
         sublistId: sublistId,
         fieldId: "defaultbilling"
       });
-      // Reset Default Value when remove address
-      if (defaultbilling) {
-        currentRecord.setValue({
-          fieldId: "defaultaddress",
-          value: ""
-        });
-        currentRecord.setValue({
-          fieldId: "custentity_address_verification",
-          value: ""
-        });
-      }
-    }
-  }
+      const defaultshipping = currentRecord.getCurrentSublistValue({
+        sublistId: sublistId,
+        fieldId: "defaultshipping"
+      });
 
-  /**
-   * Field Changed
-   * @param {*} context
-   */
-  function fieldChanged(context) {
-    const fieldId = context.fieldId;
-    const currentRecord = context.currentRecord;
-    if (fieldId === "defaultaddress") {
-      const defaultaddress = currentRecord.getValue({ fieldId: fieldId });
-      var addressArr = defaultaddress.split("\n");
-      if(addressArr.length > 3) {
-        currentRecord.setValue({
-          fieldId: "custentity_address_verification",
-          value: formatAddressStandardization(defaultaddress)
-        });
+      if (operation === "remove") {
+        // Reset Default Value when remove address
+        if (defaultbilling) {
+          currentRecord.setValue({
+            fieldId: "defaultaddress",
+            value: ""
+          });
+        }
+        if (defaultshipping) {
+          currentRecord.setValue({
+            fieldId: "custentity_address_verification",
+            value: ""
+          });
+        }
       } else {
-        currentRecord.setValue({
-          fieldId: "custentity_address_verification",
-          value: ''
-        });
+        if (defaultshipping) {
+          const addressbookaddress_text = currentRecord.getCurrentSublistValue({
+            sublistId: sublistId,
+            fieldId: "addressbookaddress_text"
+          });
+          var addressArr = addressbookaddress_text.split("\n");
+          if (addressArr.length > 3) {
+            currentRecord.setValue({
+              fieldId: "custentity_address_verification",
+              value: formatAddressStandardization(addressbookaddress_text)
+            });
+          } else {
+            currentRecord.setValue({
+              fieldId: "custentity_address_verification",
+              value: ""
+            });
+          }
+        }
       }
     }
-    return;
   }
 
   /** HELPER FUNCTIONS **/
@@ -83,6 +86,5 @@ define([], function() {
    */
   var exports = {};
   exports.sublistChanged = sublistChanged;
-  exports.fieldChanged = fieldChanged;
   return exports;
 });
