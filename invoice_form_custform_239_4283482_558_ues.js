@@ -40,8 +40,10 @@ define(["N/record"], function(record) {
                 type: record.Type.CUSTOMER_DEPOSIT,
                 id: id
               });
-              var custbody_date_deposited = CD.getValue("custbody_date_deposited");
-              if(custbody_date_deposited !== '') {
+              var custbody_date_deposited = CD.getValue(
+                "custbody_date_deposited"
+              );
+              if (custbody_date_deposited !== "") {
                 var totalValue = so.getSublistValue({
                   sublistId: "links",
                   fieldId: "total",
