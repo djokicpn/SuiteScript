@@ -548,6 +548,48 @@ Type = {object}
     TRANSACTION = {string} transaction
 ```
 
+```
+Operator:
+    AFTER: "after"
+    ALLOF: "allof"
+    ANY: "any"
+    ANYOF: "anyof"
+    BEFORE: "before"
+    BETWEEN: "between"
+    CONTAINS: "contains"
+    DOESNOTCONTAIN: "doesnotcontain"
+    DOESNOTSTARTWITH: "doesnotstartwith"
+    EQUALTO: "equalto"
+    GREATERTHAN: "greaterthan"
+    GREATERTHANOREQUALTO: "greaterthanorequalto"
+    HASKEYWORDS: "haskeywords"
+    IS: "is"
+    ISEMPTY: "isempty"
+    ISNOT: "isnot"
+    ISNOTEMPTY: "isnotempty"
+    LESSTHAN: "lessthan"
+    LESSTHANOREQUALTO: "lessthanorequalto"
+    NONEOF: "noneof"
+    NOTAFTER: "notafter"
+    NOTALLOF: "notallof"
+    NOTBEFORE: "notbefore"
+    NOTBETWEEN: "notbetween"
+    NOTEQUALTO: "notequalto"
+    NOTGREATERTHAN: "notgreaterthan"
+    NOTGREATERTHANOREQUALTO: "notgreaterthanorequalto"
+    NOTLESSTHAN: "notlessthan"
+    NOTLESSTHANOREQUALTO: "notlessthanorequalto"
+    NOTON: "noton"
+    NOTONORAFTER: "notonorafter"
+    NOTONORBEFORE: "notonorbefore"
+    NOTWITHIN: "notwithin"
+    ON: "on"
+    ONORAFTER: "onorafter"
+    ONORBEFORE: "onorbefore"
+    STARTSWITH: "startswith"
+    WITHIN: "within"
+```
+
 ### 2. Logging and Debugging
 
 - Note: This will show in exc log of script
