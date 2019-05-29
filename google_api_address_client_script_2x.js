@@ -107,7 +107,7 @@ define(["N/runtime"], function(runtime) {
         var addrtext = currentRecord.getField({
           fieldId: "addrtext"
         });
-        if(addrtext){
+        if (addrtext) {
           addrtext.isDisabled = true;
         }
         override.isDisplay = false;
@@ -115,18 +115,18 @@ define(["N/runtime"], function(runtime) {
       }
     }
 
-    // Hide 
+    // Hide
     // defaultshipping
-    hideField(currentRecord, 'defaultshipping');
+    hideField(currentRecord, "defaultshipping");
     // defaultbilling
-    hideField(currentRecord, 'defaultbilling');
+    hideField(currentRecord, "defaultbilling");
     // isresidential
-    hideField(currentRecord, 'isresidential');
+    hideField(currentRecord, "isresidential");
     // entity
     // hideField(currentRecord, 'entity');
     if (window.document) {
-      var entity = window.document.getElementById('entity_lbl_uir_label');
-      if(entity){
+      var entity = window.document.getElementById("entity_lbl_uir_label");
+      if (entity) {
         entity.parentNode.style.display = "none";
       }
     }
@@ -190,8 +190,8 @@ define(["N/runtime"], function(runtime) {
 
   /**
    * Hide Field
-   * @param {*} currentRecord 
-   * @param {*} fieldName 
+   * @param {*} currentRecord
+   * @param {*} fieldName
    */
   function hideField(currentRecord, fieldName) {
     var field = currentRecord.getField({
