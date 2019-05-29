@@ -1,4 +1,4 @@
-define([], function() {
+define(["N/runtime"], function(runtime) {
   /**
    * Add Google Autocomplete for Address
    * @NApiVersion 2.x
@@ -12,7 +12,6 @@ define([], function() {
     "https://maps.googleapis.com/maps/api/js?key=" +
     API_KEY +
     "&libraries=places";
-  const SCRIPT_ID = "google_api_address_client_script_2x";
 
   /* === EVENTS FUNCTIONS === */
 
@@ -94,6 +93,43 @@ define([], function() {
     if (zip) {
       zip.isDisabled = true;
     }
+
+    var currentUser = runtime.getCurrentUser();
+    const role = currentUser.role;
+    var override = currentRecord.getField({
+      fieldId: "override"
+    });
+    if (override) {
+      // 3 Administrator
+      // 1069	Lexor | Sales Director
+      // 1037	Lexor | Sales Manager
+      if (!(role === 3 || role === 1069 || role === 1037)) {
+        var addrtext = currentRecord.getField({
+          fieldId: "addrtext"
+        });
+        if(addrtext){
+          addrtext.isDisabled = true;
+        }
+        override.isDisplay = false;
+        addrtext.isDisabled = true;
+      }
+    }
+
+    // Hide 
+    // defaultshipping
+    hideField(currentRecord, 'defaultshipping');
+    // defaultbilling
+    hideField(currentRecord, 'defaultbilling');
+    // isresidential
+    hideField(currentRecord, 'isresidential');
+    // entity
+    // hideField(currentRecord, 'entity');
+    if (window.document) {
+      var entity = window.document.getElementById('entity_lbl_uir_label');
+      if(entity){
+        entity.parentNode.style.display = "none";
+      }
+    }
   }
 
   /**
@@ -149,6 +185,20 @@ define([], function() {
         fieldId: fieldName,
         value: ""
       });
+    }
+  }
+
+  /**
+   * Hide Field
+   * @param {*} currentRecord 
+   * @param {*} fieldName 
+   */
+  function hideField(currentRecord, fieldName) {
+    var field = currentRecord.getField({
+      fieldId: fieldName
+    });
+    if (field) {
+      field.isDisplay = false;
     }
   }
 
