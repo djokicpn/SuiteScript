@@ -91,6 +91,7 @@ define(["N/search", "/SuiteScripts/lib/autocomplete"], function(
             keywords: text
           })
           .then(function(result) {
+            var promises = [];
             result = arrayFilter(result, function(o) {
               if (
                 (o.getValue({
@@ -105,31 +106,76 @@ define(["N/search", "/SuiteScripts/lib/autocomplete"], function(
                   })
                 )
               ) {
+                promises.push(
+                  search.lookupFields.promise({
+                    type: o.recordType,
+                    id: o.id,
+                    columns: [
+                      "firstname",
+                      "middlename",
+                      "lastname",
+                      "companyname",
+                      "salesrep",
+                      "entitystatus"
+                    ]
+                  })
+                );
                 return o;
               }
             });
-            update(result);
+            Promise.all(promises)
+              .then(function(results) {
+                for (var index = 0; index < result.length; index++) {
+                  var el = result[index];
+                  var name = el.getValue({
+                    name: "name"
+                  });
+                  var type = el.getValue({
+                    name: "type"
+                  });
+                  var info1 = el.getValue({
+                    name: "info1"
+                  });
+                  var info2 = el.getValue({
+                    name: "info2"
+                  });
+                  results[index].id = el.id;
+                  results[index].name = name;
+                  results[index].type = type;
+                  results[index].info1 = info1;
+                  results[index].info2 = info2;
+                }
+                update(results);
+              })
+              .catch(function onRejected(reason) {});
           })
           .catch(function onRejected(reason) {});
       },
       render: function(element, currentValue) {
         var div = document.createElement("div");
-        var name = element.getValue({
-          name: "name"
-        });
-        var type = element.getValue({
-          name: "type"
-        });
-        var info1 = element.getValue({
-          name: "info1"
-        });
-        var info2 = element.getValue({
-          name: "info2"
-        });
-        var formatStr = "<p><strong>" + type + ": " + name + "</strong></p>";
-        formatStr += info1 ? "<p> - " + info1 + "</p>" : "";
-        formatStr += info2 ? "<p> - " + info2 + "</p>" : "";
-        // div.textContent = item.label;
+        var formatStr =
+          '<p><strong style="font-weight: bold;">' +
+          element.type +
+          "</strong></p>";
+        formatStr +=
+          '<p>Name: <strong style="font-weight: bold;">' +
+          getName(element.firstname, element.middlename, element.lastname) +
+          (element.companyname ? " (" + element.companyname + ")" : "") +
+          "</strong></p>";
+        formatStr +=
+          '<p>Status: <strong style="font-weight: bold;">' +
+          (element.entitystatus.length > 0
+            ? element.entitystatus[0].text
+            : "None") +
+          "</strong></p>";
+        formatStr +=
+          '<p>Sales Rep: <strong style="font-weight: bold;">' +
+          (element.salesrep.length > 0 ? element.salesrep[0].text : "None") +
+          "</strong></p>";
+        formatStr +=
+          '<p>Phone: <strong style="font-weight: bold;">' +
+          element.info2 +
+          "</strong></p>";
         div.innerHTML = formatStr;
         return div;
       },
@@ -150,6 +196,7 @@ define(["N/search", "/SuiteScripts/lib/autocomplete"], function(
             keywords: text
           })
           .then(function(result) {
+            var promises = [];
             result = arrayFilter(result, function(o) {
               if (
                 (o.getValue({
@@ -164,31 +211,76 @@ define(["N/search", "/SuiteScripts/lib/autocomplete"], function(
                   })
                 )
               ) {
+                promises.push(
+                  search.lookupFields.promise({
+                    type: o.recordType,
+                    id: o.id,
+                    columns: [
+                      "firstname",
+                      "middlename",
+                      "lastname",
+                      "companyname",
+                      "salesrep",
+                      "entitystatus"
+                    ]
+                  })
+                );
                 return o;
               }
             });
-            update(result);
+            Promise.all(promises)
+              .then(function(results) {
+                for (var index = 0; index < result.length; index++) {
+                  var el = result[index];
+                  var name = el.getValue({
+                    name: "name"
+                  });
+                  var type = el.getValue({
+                    name: "type"
+                  });
+                  var info1 = el.getValue({
+                    name: "info1"
+                  });
+                  var info2 = el.getValue({
+                    name: "info2"
+                  });
+                  results[index].id = el.id;
+                  results[index].name = name;
+                  results[index].type = type;
+                  results[index].info1 = info1;
+                  results[index].info2 = info2;
+                }
+                update(results);
+              })
+              .catch(function onRejected(reason) {});
           })
           .catch(function onRejected(reason) {});
       },
       render: function(element, currentValue) {
         var div = document.createElement("div");
-        var name = element.getValue({
-          name: "name"
-        });
-        var type = element.getValue({
-          name: "type"
-        });
-        var info1 = element.getValue({
-          name: "info1"
-        });
-        var info2 = element.getValue({
-          name: "info2"
-        });
-        var formatStr = "<p><strong>" + type + ": " + name + "</strong></p>";
-        formatStr += info1 ? "<p> - " + info1 + "</p>" : "";
-        formatStr += info2 ? "<p> - " + info2 + "</p>" : "";
-        // div.textContent = item.label;
+        var formatStr =
+          '<p><strong style="font-weight: bold;">' +
+          element.type +
+          "</strong></p>";
+        formatStr +=
+          '<p>Name: <strong style="font-weight: bold;">' +
+          getName(element.firstname, element.middlename, element.lastname) +
+          (element.companyname ? " (" + element.companyname + ")" : "") +
+          "</strong></p>";
+        formatStr +=
+          '<p>Status: <strong style="font-weight: bold;">' +
+          (element.entitystatus.length > 0
+            ? element.entitystatus[0].text
+            : "None") +
+          "</strong></p>";
+        formatStr +=
+          '<p>Sales Rep: <strong style="font-weight: bold;">' +
+          (element.salesrep.length > 0 ? element.salesrep[0].text : "None") +
+          "</strong></p>";
+        formatStr +=
+          '<p>Phone: <strong style="font-weight: bold;">' +
+          element.info2 +
+          "</strong></p>";
         div.innerHTML = formatStr;
         return div;
       },
@@ -250,6 +342,20 @@ define(["N/search", "/SuiteScripts/lib/autocomplete"], function(
       }
     }
     return result;
+  }
+
+  /**
+   * Convert Name
+   * @param {*} firstname
+   * @param {*} middlename
+   * @param {*} lastname
+   */
+  function getName(firstname, middlename, lastname) {
+    var name = "";
+    name += firstname !== "" ? firstname : "";
+    name += middlename !== "" ? " " + middlename : "";
+    name += lastname !== "" ? " " + lastname : "";
+    return name;
   }
 
   /**
