@@ -1,295 +1,263 @@
-define(['N/search'], function(search) {
-	/**
-	 * Add Google Map for Address form
-	 * @NApiVersion 2.x
-	 * @NScriptType ClientScript
-	 * @author trungpv <trung@lexor.com>
-	 */
+define(["N/search", "/SuiteScripts/lib/autocomplete"], function(
+  search,
+  autocomplete
+) {
+  /**
+   * Add Google Map for Address form
+   * @NApiVersion 2.x
+   * @NScriptType ClientScript
+   * @author trungpv <trung@lexor.com>
+   */
 
-	/* === VARS === */
+  /* === VARS === */
 
-	/* === EVENTS FUNCTIONS === */
+  /* === EVENTS FUNCTIONS === */
 
-	/**
-	 * Sublist Changed
-	 * @param {*} context
-	 */
-	function sublistChanged(context) {
-		const currentRecord = context.currentRecord;
-		const sublistId = context.sublistId;
-		const operation = context.operation;
+  /**
+   * Sublist Changed
+   * @param {*} context
+   */
+  function sublistChanged(context) {
+    const currentRecord = context.currentRecord;
+    const sublistId = context.sublistId;
+    const operation = context.operation;
 
-		if (sublistId === 'addressbook') {
-			const defaultbilling = currentRecord.getCurrentSublistValue({
-				sublistId: sublistId,
-				fieldId: 'defaultbilling'
-			});
-			const defaultshipping = currentRecord.getCurrentSublistValue({
-				sublistId: sublistId,
-				fieldId: 'defaultshipping'
-			});
+    if (sublistId === "addressbook") {
+      const defaultbilling = currentRecord.getCurrentSublistValue({
+        sublistId: sublistId,
+        fieldId: "defaultbilling"
+      });
+      const defaultshipping = currentRecord.getCurrentSublistValue({
+        sublistId: sublistId,
+        fieldId: "defaultshipping"
+      });
 
-			if (operation === 'remove') {
-				// Reset Default Value when remove address
-				if (defaultbilling) {
-					currentRecord.setValue({
-						fieldId: 'defaultaddress',
-						value: ''
-					});
-				}
-				if (defaultshipping) {
-					currentRecord.setValue({
-						fieldId: 'custentity_address_verification',
-						value: ''
-					});
-				}
-			} else {
-				if (defaultshipping) {
-					const addressbookaddress_text = currentRecord.getCurrentSublistValue({
-						sublistId: sublistId,
-						fieldId: 'addressbookaddress_text'
-					});
-					var addressArr = addressbookaddress_text.split('\n');
-					if (addressArr.length > 3) {
-						currentRecord.setValue({
-							fieldId: 'custentity_address_verification',
-							value: formatAddressStandardization(addressbookaddress_text)
-						});
-					} else {
-						currentRecord.setValue({
-							fieldId: 'custentity_address_verification',
-							value: ''
-						});
-					}
-				}
-			}
-		}
-	}
+      if (operation === "remove") {
+        // Reset Default Value when remove address
+        if (defaultbilling) {
+          currentRecord.setValue({
+            fieldId: "defaultaddress",
+            value: ""
+          });
+        }
+        if (defaultshipping) {
+          currentRecord.setValue({
+            fieldId: "custentity_address_verification",
+            value: ""
+          });
+        }
+      } else {
+        if (defaultshipping) {
+          const addressbookaddress_text = currentRecord.getCurrentSublistValue({
+            sublistId: sublistId,
+            fieldId: "addressbookaddress_text"
+          });
+          var addressArr = addressbookaddress_text.split("\n");
+          if (addressArr.length > 3) {
+            currentRecord.setValue({
+              fieldId: "custentity_address_verification",
+              value: formatAddressStandardization(addressbookaddress_text)
+            });
+          } else {
+            currentRecord.setValue({
+              fieldId: "custentity_address_verification",
+              value: ""
+            });
+          }
+        }
+      }
+    }
+  }
 
-	/**
-	 * Page Init
-	 * @param {*} context
-	 */
-	function pageInit(context) {
-		console.log('pageInit Triggered!', context);
-		loadCSSText(
-			'.autocomplete{position:relative;display:inline-block}.autocomplete-items{position:absolute;z-index:99;display:inline-block}.autocomplete-items div{padding:10px;cursor:pointer;background-color:#fff;border:1px solid #d4d4d4}.autocomplete-items div:hover{background-color:#e9e9e9}.autocomplete-active{background-color:#1e90ff!important;color:#fff}'
-		);
+  /**
+   * Page Init
+   * @param {*} context
+   */
+  function pageInit(context) {
+    const currentRecord = context.currentRecord;
 
-		/*the autocomplete function takes two arguments,
-    the text field element and an array of possible autocompleted values:*/
-		var currentFocus;
-		var inp = document.getElementById('custentity_search_phone');
-		/*execute a function when someone writes in the text field:*/
-		inp.addEventListener('keyup', function(e) {
-			// Press Left Arrow
-			if (e.which === 39) {
-				var a,
-					b,
-					i,
-					val = this.value;
-				var that = this;
-				/*close any already open lists of autocompleted values*/
-				closeAllLists();
-				if (!val) {
-					return false;
-				}
+    loadCSSText(
+      ".autocomplete{background:#fff;z-index:1000;overflow:auto;box-sizing:border-box;border:1px solid #ccc;font-size:13px}.autocomplete>div{padding:5px 5px;border-bottom:1px solid #ccc}.autocomplete .group{background:#eee}.autocomplete>div.selected,.autocomplete>div:hover:not(.group){background:#607799;cursor:pointer;color:#fff}"
+    );
 
-				// Start Search
-				const types = ['Customer', 'Lead', 'Prospect'];
-				search.global
-					.promise({
-						keywords: val
-					})
-					.then(function(result) {
-						result = arrayFilter(result, function(o) {
-							if (
-								(o.getValue({
-									name: 'info1'
-								}) !== '' ||
-									o.getValue({
-										name: 'info2'
-									}) !== '') &&
-								types.includes(
-									o.getValue({
-										name: 'type'
-									})
-								)
-							) {
-								return o;
-							}
-						});
-						currentFocus = -1;
-						/*create a DIV element that will contain the items (values):*/
-						a = document.createElement('DIV');
-						a.setAttribute('id', this.id + 'autocomplete-list');
-						a.setAttribute('class', 'autocomplete-items');
-						const inpPos = offset(inp);
-						a.style.top = inpPos.top + 25 + 'px';
-						a.style.left = inpPos.left + 'px';
-						// a.style.display = "block";
-						/*append the DIV element as a child of the autocomplete container:*/
-						that.parentNode.appendChild(a);
-						/*for each item in the array...*/
-						for (i = 0; i < result.length; i++) {
-							var element = result[i];
-							var name = element.getValue({
-								name: 'name'
-							});
-							var type = element.getValue({
-								name: 'type'
-							});
-							var info1 = element.getValue({
-								name: 'info1'
-							});
-							var info2 = element.getValue({
-								name: 'info2'
-							});
-							var formatStr = '<p><strong>' + type + ': ' + name + '</strong></p>';
-							formatStr += info1 ? '<p> - ' + info1 + '</p>' : '';
-							formatStr += info2 ? '<p> - ' + info2 + '</p>' : '';
-							/*create a DIV element for each matching element:*/
-							b = document.createElement('DIV');
-							b.innerHTML = formatStr;
-							/*insert a input field that will hold the current array item's value:*/
-							b.innerHTML += "<input type='hidden' value='" + formatStr;
-							+"'>";
-							/*execute a function when someone clicks on the item value (DIV element):*/
-							b.addEventListener('click', function(e) {
-								/*insert the value for the autocomplete text field:*/
-								// inp.value = this.getElementsByTagName("input")[0].value;
-								/*close the list of autocompleted values,
-              (or any other open lists of autocompleted values:*/
-								closeAllLists();
-							});
-							a.appendChild(b);
-						}
-					})
-					.catch(function onRejected(reason) {
-						// do something on rejection
-						console.log(reason);
-					});
-			}
-		});
-		/*execute a function when someone clicks in the document:*/
-		document.addEventListener('click', function(e) {
-			closeAllLists(e.target);
-		});
-		/**
-		 * Autocomplete
-		 */
-		function addActive(x) {
-			/*a function to classify an item as "active":*/
-			if (!x) return false;
-			/*start by removing the "active" class on all items:*/
-			removeActive(x);
-			if (currentFocus >= x.length) currentFocus = 0;
-			if (currentFocus < 0) currentFocus = x.length - 1;
-			/*add class "autocomplete-active":*/
-			x[currentFocus].classList.add('autocomplete-active');
-		}
+    // var input = document.getElementById('custentity_search_phone');
+    var mobilephone = document.getElementById("mobilephone");
+    autocomplete({
+      input: mobilephone,
+      fetch: function(text, update) {
+        // Start Search
+        const types = ["Customer", "Lead", "Prospect"];
+        search.global
+          .promise({
+            keywords: text
+          })
+          .then(function(result) {
+            result = arrayFilter(result, function(o) {
+              if (
+                (o.getValue({
+                  name: "info1"
+                }) !== "" ||
+                  o.getValue({
+                    name: "info2"
+                  }) !== "") &&
+                types.includes(
+                  o.getValue({
+                    name: "type"
+                  })
+                )
+              ) {
+                return o;
+              }
+            });
+            update(result);
+          })
+          .catch(function onRejected(reason) {});
+      },
+      render: function(element, currentValue) {
+        var div = document.createElement("div");
+        var name = element.getValue({
+          name: "name"
+        });
+        var type = element.getValue({
+          name: "type"
+        });
+        var info1 = element.getValue({
+          name: "info1"
+        });
+        var info2 = element.getValue({
+          name: "info2"
+        });
+        var formatStr = "<p><strong>" + type + ": " + name + "</strong></p>";
+        formatStr += info1 ? "<p> - " + info1 + "</p>" : "";
+        formatStr += info2 ? "<p> - " + info2 + "</p>" : "";
+        // div.textContent = item.label;
+        div.innerHTML = formatStr;
+        return div;
+      },
+      onSelect: function(item) {
+        NS.jQuery("#mobilephone").val("");
+        window.open("/app/common/entity/custjob.nl?id=" + item.id, "_blank");
+      }
+    });
 
-		function removeActive(x) {
-			/*a function to remove the "active" class from all autocomplete items:*/
-			for (var i = 0; i < x.length; i++) {
-				x[i].classList.remove('autocomplete-active');
-			}
-		}
+    var phone = document.getElementById("phone");
+    autocomplete({
+      input: phone,
+      fetch: function(text, update) {
+        // Start Search
+        const types = ["Customer", "Lead", "Prospect"];
+        search.global
+          .promise({
+            keywords: text
+          })
+          .then(function(result) {
+            result = arrayFilter(result, function(o) {
+              if (
+                (o.getValue({
+                  name: "info1"
+                }) !== "" ||
+                  o.getValue({
+                    name: "info2"
+                  }) !== "") &&
+                types.includes(
+                  o.getValue({
+                    name: "type"
+                  })
+                )
+              ) {
+                return o;
+              }
+            });
+            update(result);
+          })
+          .catch(function onRejected(reason) {});
+      },
+      render: function(element, currentValue) {
+        var div = document.createElement("div");
+        var name = element.getValue({
+          name: "name"
+        });
+        var type = element.getValue({
+          name: "type"
+        });
+        var info1 = element.getValue({
+          name: "info1"
+        });
+        var info2 = element.getValue({
+          name: "info2"
+        });
+        var formatStr = "<p><strong>" + type + ": " + name + "</strong></p>";
+        formatStr += info1 ? "<p> - " + info1 + "</p>" : "";
+        formatStr += info2 ? "<p> - " + info2 + "</p>" : "";
+        // div.textContent = item.label;
+        div.innerHTML = formatStr;
+        return div;
+      },
+      onSelect: function(item) {
+        NS.jQuery("#phone").val("");
+        window.open("/app/common/entity/custjob.nl?id=" + item.id, "_blank");
+      }
+    });
 
-		function closeAllLists(elmnt) {
-			/*close all autocomplete lists in the document,
-    except the one passed as an argument:*/
-			var x = document.getElementsByClassName('autocomplete-items');
-			for (var i = 0; i < x.length; i++) {
-				if (elmnt != x[i] && elmnt != inp) {
-					x[i].parentNode.removeChild(x[i]);
-				}
-			}
-		}
+    return;
+  }
 
-		return;
-	}
+  /** HELPER FUNCTIONS **/
+  function formatAddressStandardization(address) {
+    address = address.split("\n");
+    var result = "";
+    if (address.length >= 4) {
+      address.splice(0, 1);
+      if (address.length === 4) {
+        address.splice(1, 1);
+      }
+    }
 
-	/** HELPER FUNCTIONS **/
-	function formatAddressStandardization(address) {
-		address = address.split('\n');
-		var result = '';
-		if (address.length >= 4) {
-			address.splice(0, 1);
-			if (address.length === 4) {
-				address.splice(1, 1);
-			}
-		}
+    result = address.join("\n");
+    return result;
+  }
 
-		result = address.join('\n');
-		return result;
-	}
+  /**
+   * Load CSS from Text
+   * @param {*} str
+   */
+  function loadCSSText(str) {
+    if (window.document) {
+      var fileref = window.document.createElement("style");
+      fileref.innerHTML = str;
+      window.document.head.appendChild(fileref);
+    }
+  }
 
-	/**
-	 * Load CSS File
-	 * @param {*} file
-	 */
-	function loadCSS(file) {
-		if (window.document) {
-			var fileref = window.document.createElement('link');
-			fileref.setAttribute('rel', 'stylesheet');
-			fileref.setAttribute('type', 'text/css');
-			fileref.setAttribute('href', file);
-			window.document.head.appendChild(fileref);
-		}
-	}
+  /**
+   * A specialized version of `_.filter` for arrays without support for
+   * iteratee shorthands.
+   *
+   * @private
+   * @param {Array} [array] The array to iterate over.
+   * @param {Function} predicate The function invoked per iteration.
+   * @returns {Array} Returns the new filtered array.
+   */
+  function arrayFilter(array, predicate) {
+    var index = -1,
+      length = array == null ? 0 : array.length,
+      resIndex = 0,
+      result = [];
 
-	/**
-	 * Load CSS from Text
-	 * @param {*} str
-	 */
-	function loadCSSText(str) {
-		if (window.document) {
-			var fileref = window.document.createElement('style');
-			fileref.innerHTML = str;
-			window.document.head.appendChild(fileref);
-		}
-	}
+    while (++index < length) {
+      var value = array[index];
+      if (predicate(value, index, array)) {
+        result[resIndex++] = value;
+      }
+    }
+    return result;
+  }
 
-	function offset(el) {
-		var rect = el.getBoundingClientRect(),
-			scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
-			scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-		return {
-			top: rect.top + scrollTop,
-			left: rect.left + scrollLeft
-		};
-	}
-
-	/**
-	 * A specialized version of `_.filter` for arrays without support for
-	 * iteratee shorthands.
-	 *
-	 * @private
-	 * @param {Array} [array] The array to iterate over.
-	 * @param {Function} predicate The function invoked per iteration.
-	 * @returns {Array} Returns the new filtered array.
-	 */
-	function arrayFilter(array, predicate) {
-		var index = -1,
-			length = array == null ? 0 : array.length,
-			resIndex = 0,
-			result = [];
-
-		while (++index < length) {
-			var value = array[index];
-			if (predicate(value, index, array)) {
-				result[resIndex++] = value;
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * Export Events
-	 */
-	var exports = {};
-	exports.pageInit = pageInit;
-	exports.sublistChanged = sublistChanged;
-	return exports;
+  /**
+   * Export Events
+   */
+  var exports = {};
+  exports.pageInit = pageInit;
+  exports.sublistChanged = sublistChanged;
+  return exports;
 });

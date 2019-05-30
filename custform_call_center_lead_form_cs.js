@@ -3,7 +3,7 @@ define(["N/search", "/SuiteScripts/lib/autocomplete"], function(
   autocomplete
 ) {
   /**
-   * Add Google Map for Address form
+   * Call Center Lead Form
    * @NApiVersion 2.x
    * @NScriptType ClientScript
    * @author trungpv <trung@lexor.com>
@@ -134,8 +134,8 @@ define(["N/search", "/SuiteScripts/lib/autocomplete"], function(
         return div;
       },
       onSelect: function(item) {
-		NS.jQuery('#mobilephone').val('');
-		window.open('/app/common/entity/custjob.nl?id=' + item.id, '_blank');
+        NS.jQuery("#mobilephone").val("");
+        window.open("/app/common/entity/custjob.nl?id=" + item.id, "_blank");
       }
     });
 
@@ -193,8 +193,8 @@ define(["N/search", "/SuiteScripts/lib/autocomplete"], function(
         return div;
       },
       onSelect: function(item) {
-		NS.jQuery('#phone').val('');
-        window.open('/app/common/entity/custjob.nl?id=' + item.id, '_blank');
+        NS.jQuery("#phone").val("");
+        window.open("/app/common/entity/custjob.nl?id=" + item.id, "_blank");
       }
     });
 
@@ -217,20 +217,6 @@ define(["N/search", "/SuiteScripts/lib/autocomplete"], function(
   }
 
   /**
-   * Load CSS File
-   * @param {*} file
-   */
-  function loadCSS(file) {
-    if (window.document) {
-      var fileref = window.document.createElement("link");
-      fileref.setAttribute("rel", "stylesheet");
-      fileref.setAttribute("type", "text/css");
-      fileref.setAttribute("href", file);
-      window.document.head.appendChild(fileref);
-    }
-  }
-
-  /**
    * Load CSS from Text
    * @param {*} str
    */
@@ -239,24 +225,6 @@ define(["N/search", "/SuiteScripts/lib/autocomplete"], function(
       var fileref = window.document.createElement("style");
       fileref.innerHTML = str;
       window.document.head.appendChild(fileref);
-    }
-  }
-
-  /**
-   * Parse Phone from string
-   * @param {*} str
-   */
-  function parsePhone(str) {
-    const arrPhone = str.split("(main) ");
-    if (arrPhone.length > 1) {
-      var result = [];
-      result.push(arrPhone[0]);
-      result.push(arrPhone[1].replace("(cell) ", ""));
-      return result;
-    } else if (arrPhone.length === 1) {
-      return arrPhone;
-    } else {
-      return false;
     }
   }
 
