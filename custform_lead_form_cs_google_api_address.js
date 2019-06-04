@@ -155,8 +155,8 @@ define(["N/search", "/SuiteScripts/lib/autocomplete"], function(
       render: function(element, currentValue) {
         var div = document.createElement("div");
         var formatStr =
-          '<p><strong style="font-weight: bold;">' +
-          element.type +
+          '<p>' + element.type + ': <strong style="font-weight: bold;">' +
+          element.name +
           "</strong></p>";
         formatStr +=
           '<p>Name: <strong style="font-weight: bold;">' +
@@ -260,8 +260,8 @@ define(["N/search", "/SuiteScripts/lib/autocomplete"], function(
       render: function(element, currentValue) {
         var div = document.createElement("div");
         var formatStr =
-          '<p><strong style="font-weight: bold;">' +
-          element.type +
+          '<p>' + element.type + ': <strong style="font-weight: bold;">' +
+          element.name +
           "</strong></p>";
         formatStr +=
           '<p>Name: <strong style="font-weight: bold;">' +
