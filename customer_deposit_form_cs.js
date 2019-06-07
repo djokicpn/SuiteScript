@@ -10,6 +10,15 @@ define([], function() {
   /* === VARS === */
 
   /* === EVENTS FUNCTIONS === */
+  /**
+   * Page Init
+   * @param {*} context
+   */
+  function pageInit(context) {
+    const currentRecord = context.currentRecord;
+    processDateDeposited(currentRecord);
+    return;
+  }
 
   /**
    * Field Changed
@@ -52,6 +61,7 @@ define([], function() {
    * Export Events
    */
   var exports = {};
+  exports.pageInit = pageInit;
   exports.fieldChanged = fieldChanged;
   return exports;
 });
