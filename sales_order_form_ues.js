@@ -6,7 +6,16 @@
  * @author trungpv <trung@lexor.com>
  */
 define(["./Module/salesEffective"], function(salesEffective) {
-  function beforeLoad(context) {}
+  function beforeLoad(context) {
+    var form = context.form;
+    var item = form.getSublist({ id: "item" });
+    if (item) {
+      var amountCol = item.getField({ id: "amount" });
+      if(amountCol){
+        amountCol.updateDisplayType({ displayType: "disabled" });
+      }
+    }
+  }
 
   function beforeSubmit(context) {}
 

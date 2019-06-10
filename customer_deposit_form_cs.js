@@ -1,12 +1,11 @@
+/**
+ * Customer Deposit Form Client Script
+ * custform_248_4283482_820
+ * @NApiVersion 2.x
+ * @NScriptType ClientScript
+ * @author trungpv <trung@lexor.com>
+ */
 define(["N/runtime"], function(runtime) {
-  /**
-   * Customer Deposit Form Client Script
-   * custform_248_4283482_820
-   * @NApiVersion 2.x
-   * @NScriptType ClientScript
-   * @author trungpv <trung@lexor.com>
-   */
-
   /* === VARS === */
 
   /* === EVENTS FUNCTIONS === */
