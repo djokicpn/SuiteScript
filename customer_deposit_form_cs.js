@@ -1,4 +1,4 @@
-define([], function() {
+define(["N/runtime"], function(runtime) {
   /**
    * Customer Deposit Form Client Script
    * custform_248_4283482_820
@@ -15,8 +15,8 @@ define([], function() {
    * @param {*} context
    */
   function pageInit(context) {
-    const currentRecord = context.currentRecord;
-    processDateDeposited(currentRecord);
+    processDateDeposited(context);
+    disabledFeatureRoles(context);
     return;
   }
 
@@ -25,17 +25,37 @@ define([], function() {
    * @param {*} context
    */
   function fieldChanged(context) {
-    const currentRecord = context.currentRecord;
     const fieldId = context.fieldId;
+
+    // Exclude Click Account for some Roles
+    var currentUser = runtime.getCurrentUser();
+    const role = currentUser.role;
+    // 1036 Lexor| Sale
+    // 1069	Lexor | Sales Director
+    // 1037	Lexor | Sales Manager
+    if (role === 1036 || role === 1069 || role === 1037) {
+      const currentRecord = context.currentRecord;
+      const undepfunds = currentRecord.getValue({
+        fieldId: "undepfunds"
+      });
+      if(undepfunds === "F" || fieldId === "account") {
+        currentRecord.setValue({
+          fieldId: "undepfunds",
+          value: 'T'
+        });
+      }
+    }
+
     if (fieldId === "undepfunds" || fieldId === "account") {
-      processDateDeposited(currentRecord);
+      processDateDeposited(context);
     }
     return;
   }
 
   /* HELPER FUNCTIONS */
 
-  function processDateDeposited(currentRecord) {
+  function processDateDeposited(context) {
+    const currentRecord = context.currentRecord;
     const undepfunds = currentRecord.getValue({
       fieldId: "undepfunds"
     });
@@ -54,6 +74,23 @@ define([], function() {
         fieldId: "custbody_date_deposited",
         value: ""
       });
+    }
+  }
+
+  /**
+   * Disable Fields with some Roles
+   */
+  function disabledFeatureRoles(context) {
+    var account = document.querySelector('input[name="undepfunds"][value="F"]');
+    if (account) {
+      var currentUser = runtime.getCurrentUser();
+      const role = currentUser.role;
+      // 1036 Lexor| Sale
+      // 1069	Lexor | Sales Director
+      // 1037	Lexor | Sales Manager
+      if (role === 1036 || role === 1069 || role === 1037) {
+        account.disabled = true;
+      }
     }
   }
 
