@@ -6,7 +6,14 @@
  * @author trungpv <trung@lexor.com>
  */
 define(["./Module/salesEffective"], function(salesEffective) {
-  function beforeLoad(context) {}
+  function beforeLoad(context) {
+    var form = context.form;
+    // Set Under. Funds as Default
+    var undepfunds = form.getField({ id: "undepfunds" });
+    if (undepfunds) {
+      undepfunds.defaultValue = "T";
+    }
+  }
 
   function beforeSubmit(context) {}
 
