@@ -15,7 +15,6 @@ define(["./Module/salesEffective"], function(salesEffective) {
     var newRecordSaleOrder = newRecord.getValue({
       fieldId: "salesorder"
     });
-
     salesEffective.update(newRecordSaleOrder);
   }
 
