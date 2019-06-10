@@ -11,8 +11,18 @@ define(["./Module/salesEffective"], function(salesEffective) {
     var item = form.getSublist({ id: "item" });
     if (item) {
       var amountCol = item.getField({ id: "amount" });
-      if(amountCol){
+      if (amountCol) {
         amountCol.updateDisplayType({ displayType: "disabled" });
+      }
+
+      // Set Default Location
+      var locationCol = item.getField({ id: "location" });
+      if (locationCol) {
+        var newRecord = context.newRecord;
+        var location = newRecord.getValue({
+          fieldId: "location"
+        });
+        locationCol.defaultValue = location;
       }
     }
   }
