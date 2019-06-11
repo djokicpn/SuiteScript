@@ -1,4 +1,4 @@
-define(["N/runtime"], function(runtime) {
+define(["N/search", "N/runtime"], function(search, runtime) {
   /**
    * Add Google Autocomplete for Address
    * @NApiVersion 2.x
@@ -40,6 +40,10 @@ define(["N/runtime"], function(runtime) {
           autocomplete,
           "place_changed",
           function fillInAddress() {
+            var listAddressExists = window.document.getElementById(
+              "listAddressExists"
+            );
+            listAddressExists.innerHTML = "";
             resetUI(currentRecord);
             // Callback when user choosed address
             var place = autocomplete.getPlace();
@@ -50,12 +54,36 @@ define(["N/runtime"], function(runtime) {
                 fieldId: "addr1",
                 value: place.formatted_address
               });
+
+              var addr2 = window.document.getElementById("addr2");
+              if (addr2) {
+                checkAddress(addr2.value);
+              }
             }
           }
         );
       };
       scriptGoogleAPI.src = GOOGLE_API;
       window.document.head.appendChild(scriptGoogleAPI);
+
+      loadCSSText(
+        ".autocomplete{background:#fff;z-index:1000;overflow:auto;box-sizing:border-box;border:1px solid #ccc;font-size:13px}.autocomplete>div{padding:5px 5px;border-bottom:1px solid #ccc}.autocomplete .group{background:#eee}.autocomplete>div.selected,.autocomplete>div:hover:not(.group){background:#607799;cursor:pointer;color:#fff}"
+      );
+
+      // Add List
+      var trList = window.document.createElement("tr");
+      trList.innerHTML =
+        '<td style="font-size: 13px;"><div class="autocomplete" id="listAddressExists"></div></td>';
+      var addrtextElm = window.document.getElementById("addrtext"); //div in your original code
+      var selector = "tbody";
+      var parent = findParentBySelector(addrtextElm, selector);
+      parent.appendChild(trList);
+
+      // Init Check Address
+      var addr2 = window.document.getElementById("addr2");
+      if (addr2 && addr2.value !== "") {
+        checkAddress(addr2.value);
+      }
     }
     return;
   }
@@ -232,6 +260,200 @@ define(["N/runtime"], function(runtime) {
       }
     }
     return result;
+  }
+
+  /**
+   * Load CSS from Text
+   * @param {*} str
+   */
+  function loadCSSText(str) {
+    if (window.document) {
+      var fileref = window.document.createElement("style");
+      fileref.innerHTML = str;
+      window.document.head.appendChild(fileref);
+    }
+  }
+
+  /**
+   * A specialized version of `_.filter` for arrays without support for
+   * iteratee shorthands.
+   *
+   * @private
+   * @param {Array} [array] The array to iterate over.
+   * @param {Function} predicate The function invoked per iteration.
+   * @returns {Array} Returns the new filtered array.
+   */
+  function arrayFilter(array, predicate) {
+    var index = -1,
+      length = array == null ? 0 : array.length,
+      resIndex = 0,
+      result = [];
+
+    while (++index < length) {
+      var value = array[index];
+      if (predicate(value, index, array)) {
+        result[resIndex++] = value;
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Convert Name
+   * @param {*} firstname
+   * @param {*} middlename
+   * @param {*} lastname
+   */
+  function getName(firstname, middlename, lastname) {
+    var name = "";
+    name += firstname !== "" ? firstname : "";
+    name += middlename !== "" ? " " + middlename : "";
+    name += lastname !== "" ? " " + lastname : "";
+    return name;
+  }
+
+  /**
+   * 
+   * @param {*} a 
+   * @param {*} b 
+   */
+  function collectionHas(a, b) {
+    //helper function (see below)
+    for (var i = 0, len = a.length; i < len; i++) {
+      if (a[i] == b) return true;
+    }
+    return false;
+  }
+
+  /**
+   * 
+   * @param {*} elm 
+   * @param {*} selector 
+   */
+  function findParentBySelector(elm, selector) {
+    var all = document.querySelectorAll(selector);
+    var cur = elm.parentNode;
+    while (cur && !collectionHas(all, cur)) {
+      //keep going up until you find a match
+      cur = cur.parentNode; //go up
+    }
+    return cur; //will return null if not found
+  }
+
+  /**
+   * Check Address
+   * @param {*} text
+   */
+  function checkAddress(text) {
+    // Start Search
+    const types = ["Customer", "Lead", "Prospect"];
+    search.global
+      .promise({
+        keywords: text
+      })
+      .then(function(result) {
+        var promises = [];
+        result = arrayFilter(result, function(o) {
+          if (
+            (o.getValue({
+              name: "info1"
+            }) !== "" ||
+              o.getValue({
+                name: "info2"
+              }) !== "") &&
+            types.includes(
+              o.getValue({
+                name: "type"
+              })
+            )
+          ) {
+            promises.push(
+              search.lookupFields.promise({
+                type: o.recordType,
+                id: o.id,
+                columns: [
+                  "firstname",
+                  "middlename",
+                  "lastname",
+                  "companyname",
+                  "custentity_address_verification",
+                  "entitystatus"
+                ]
+              })
+            );
+            return o;
+          }
+        });
+        Promise.all(promises)
+          .then(function(results) {
+            for (var index = 0; index < result.length; index++) {
+              var el = result[index];
+              var name = el.getValue({
+                name: "name"
+              });
+              var type = el.getValue({
+                name: "type"
+              });
+              var info1 = el.getValue({
+                name: "info1"
+              });
+              var info2 = el.getValue({
+                name: "info2"
+              });
+              results[index].id = el.id;
+              results[index].name = name;
+              results[index].type = type;
+              results[index].info1 = info1;
+              results[index].info2 = info2;
+            }
+            updateSearchAddress(results);
+          })
+          .catch(function onRejected(reason) {});
+      })
+      .catch(function onRejected(reason) {});
+  }
+
+  /**
+   * Update List Address
+   * @param {*} results
+   */
+  function updateSearchAddress(results) {
+    var listAddressExists = window.document.getElementById("listAddressExists");
+    listAddressExists.innerHTML = "";
+    for (var index = 0; index < results.length; index++) {
+      var element = results[index];
+      var divAddress = window.document.createElement("div");
+      divAddress.onclick = function() {
+        window.open("/app/common/entity/custjob.nl?id=" + element.id, "_blank");
+      };
+      var formatStr =
+        "<p>" +
+        element.type +
+        ': <strong style="font-weight: bold;">' +
+        element.name +
+        "</strong></p>";
+      formatStr +=
+        '<p>Name: <strong style="font-weight: bold;">' +
+        getName(element.firstname, element.middlename, element.lastname) +
+        (element.companyname ? " (" + element.companyname + ")" : "") +
+        "</strong></p>";
+      formatStr +=
+        '<p>Status: <strong style="font-weight: bold;">' +
+        (element.entitystatus.length > 0
+          ? element.entitystatus[0].text
+          : "None") +
+        "</strong></p>";
+      formatStr +=
+        '<p>Address: <strong style="font-weight: bold;">' +
+        element.custentity_address_verification +
+        "</strong></p>";
+      formatStr +=
+        '<p>Phone: <strong style="font-weight: bold;">' +
+        element.info2 +
+        "</strong></p>";
+      divAddress.innerHTML = formatStr;
+      listAddressExists.appendChild(divAddress);
+    }
   }
 
   /**
