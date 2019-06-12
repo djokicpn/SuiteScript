@@ -32,7 +32,9 @@ define(["N/record", "N/search"], function(record, search) {
               }),
               "amount",
               "custbody_date_deposited",
-              "status"
+              "status",
+              "custbody65",
+              "custbody66"
             ]
           });
           var totalDeposited = 0;
@@ -43,14 +45,16 @@ define(["N/record", "N/search"], function(record, search) {
             var custbody_date_deposited = item.getValue(
               "custbody_date_deposited"
             );
-            if (status === "deposited") {
+            var paymentReceived = item.getValue("custbody65");
+            var dateReceived = item.getValue("custbody66");
+            if (paymentReceived) {
               var totalValue = item.getValue("amount");
               totalDeposited =
                 parseFloat(totalDeposited) + parseFloat(totalValue);
               var totalDepositedPercent = (totalDeposited / total) * 100;
               if (totalDepositedPercent >= 25) {
-                salesEffectiveDate = custbody_date_deposited
-                  ? new Date(custbody_date_deposited)
+                salesEffectiveDate = dateReceived
+                  ? new Date(dateReceived)
                   : new Date(trandate);
                 return false;
               }

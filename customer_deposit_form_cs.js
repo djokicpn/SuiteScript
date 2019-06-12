@@ -14,7 +14,7 @@ define(["N/runtime"], function(runtime) {
    * @param {*} context
    */
   function pageInit(context) {
-    processDateDeposited(context);
+    // processDateDeposited(context);
     disabledFeatureRoles(context);
     return;
   }
@@ -24,10 +24,10 @@ define(["N/runtime"], function(runtime) {
    * @param {*} context
    */
   function fieldChanged(context) {
-    const fieldId = context.fieldId;
-    if (fieldId === "undepfunds" || fieldId === "account") {
-      processDateDeposited(context);
-    }
+    // const fieldId = context.fieldId;
+    // if (fieldId === "undepfunds" || fieldId === "account") {
+    //   processDateDeposited(context);
+    // }
     return;
   }
 
