@@ -1,11 +1,11 @@
 /**
- * Sales Order Form
+ * Quote Form
  *
  * @NApiVersion 2.x
  * @NScriptType UserEventScript
  * @author trungpv <trung@lexor.com>
  */
-define(["./Module/salesEffective"], function(salesEffective) {
+define([], function() {
   function beforeLoad(context) {
     var form = context.form;
     var newRecord = context.newRecord;
@@ -41,10 +41,7 @@ define(["./Module/salesEffective"], function(salesEffective) {
 
   function beforeSubmit(context) {}
 
-  function afterSubmit(context) {
-    var newRecord = context.newRecord;
-    salesEffective.update(newRecord.id);
-  }
+  function afterSubmit(context) {}
 
   /** HEPPER FUNCTIONS **/
   /**
@@ -98,9 +95,10 @@ define(["./Module/salesEffective"], function(salesEffective) {
         .replaceAll("____TOTAL_WEIGHT___", tableTotalWeight[key]);
     }
     htmlTableTotalWeight += "</tbody></table>";
-    htmlTableTotalWeight += "<style>.lx-table{border: solid 1px #ddeeee; border-collapse: collapse; border-spacing: 0; font-size: 12px;}.lx-table thead th{background-color: #6688c2; border: solid 1px #ddeeee; color: #fff; padding: 10px; text-align: left;}.lx-table tbody td{border: solid 1px #ddeeee; color: #000; padding: 10px;}</style>";
+    htmlTableTotalWeight +=
+      "<style>.lx-table{border: solid 1px #ddeeee; border-collapse: collapse; border-spacing: 0; font-size: 12px;}.lx-table thead th{background-color: #6688c2; border: solid 1px #ddeeee; color: #fff; padding: 10px; text-align: left;}.lx-table tbody td{border: solid 1px #ddeeee; color: #000; padding: 10px;}</style>";
     newRecord.setValue({
-      fieldId: 'custbody_table_total_weight',
+      fieldId: "custbody_table_total_weight",
       value: htmlTableTotalWeight
     });
   }
