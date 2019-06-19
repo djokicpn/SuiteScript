@@ -2,17 +2,29 @@
   <tr>
     <td>____LOCATIN___</td>
     <td>____TOTAL_WEIGHT___</td>
+    <td></td>
+    <td></td>
   </tr>
 </template>
+<span class="smallgraytextnolink uir-label"><span class="smallgraytextnolink">Shipping Rates</span></span>
 <table id="tableTotalWeight" class="lx-table">
   <thead>
     <tr>
       <th>Location</th>
       <th>Total Weight</th>
+      <th>Shipping Method</th>
+      <th>Freight Rate</th>
     </tr>
   </thead>
-  <tbody>
-  </tbody>
+  <tbody></tbody>
+  <tfoot>
+    <tr>
+      <td>Total</td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+  </tfoot>
 </table>
 <style>
   .lx-table {
@@ -29,6 +41,11 @@
     text-align: left;
   }
   .lx-table tbody td {
+    border: solid 1px #ddeeee;
+    color: #000;
+    padding: 10px;
+  }
+  .lx-table tfoot td {
     border: solid 1px #ddeeee;
     color: #000;
     padding: 10px;

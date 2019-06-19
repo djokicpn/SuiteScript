@@ -89,18 +89,20 @@ define(["./Module/salesEffective"], function(salesEffective) {
       }
     }
     var htmlTableTotalWeight =
-      '<table id="tableTotalWeight" class="lx-table"><thead><tr><th>Location</th><th>Total Weight</th></tr></thead><tbody>';
+      '<span class="smallgraytextnolink uir-label"><span class="smallgraytextnolink">Shipping Rates</span></span><table id="tableTotalWeight" class="lx-table"><thead><tr><th>Location</th><th>Total Weight</th><th>Shipping Method</th><th>Freight Rate</th></tr></thead><tbody>';
     for (var key in tableTotalWeight) {
       var tplRow =
-        "<tr><td>____LOCATIN___</td><td>____TOTAL_WEIGHT___</td></tr>";
+        "<tr><td>____LOCATIN___</td><td>____TOTAL_WEIGHT___</td><td></td><td></td></tr>";
       htmlTableTotalWeight += tplRow
         .replaceAll("____LOCATIN___", key)
         .replaceAll("____TOTAL_WEIGHT___", tableTotalWeight[key]);
     }
-    htmlTableTotalWeight += "</tbody></table>";
-    htmlTableTotalWeight += "<style>.lx-table{border: solid 1px #ddeeee; border-collapse: collapse; border-spacing: 0; font-size: 12px;}.lx-table thead th{background-color: #6688c2; border: solid 1px #ddeeee; color: #fff; padding: 10px; text-align: left;}.lx-table tbody td{border: solid 1px #ddeeee; color: #000; padding: 10px;}</style>";
+    htmlTableTotalWeight +=
+      "</tbody><tfoot><tr><td>Total</td><td></td><td></td><td></td></tr></tfoot></table>";
+    htmlTableTotalWeight +=
+      "<style>.lx-table{border:solid 1px #dee;border-collapse:collapse;border-spacing:0;font-size:12px}.lx-table thead th{background-color:#6688c2;border:solid 1px #dee;color:#fff;padding:10px;text-align:left}.lx-table tbody td{border:solid 1px #dee;color:#000;padding:10px}.lx-table tfoot td{border:solid 1px #dee;color:#000;padding:10px}</style>";
     newRecord.setValue({
-      fieldId: 'custbody_table_total_weight',
+      fieldId: "custbody_table_total_weight",
       value: htmlTableTotalWeight
     });
   }
