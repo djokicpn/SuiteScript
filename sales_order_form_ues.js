@@ -29,7 +29,8 @@ define(["./Module/salesEffective"], function(salesEffective) {
     // View Mode
     if (context.type === context.UserEventType.VIEW) {
       try {
-        buildTableTotalWeight(newRecord);
+        var newRecordObject = getTotalWeightByLocation(newRecord);
+        buildTableTotalWeight(newRecord, newRecordObject.tableTotalWeight);
       } catch (err) {
         log.error({
           title: "Error buildTableTotalWeight",
@@ -39,7 +40,37 @@ define(["./Module/salesEffective"], function(salesEffective) {
     }
   }
 
-  function beforeSubmit(context) {}
+  function beforeSubmit(context) {
+    const type = context.type;
+    var newRecord = context.newRecord;
+    var oldRecord = context.oldRecord;
+    try {
+      var newRecordObject = getTotalWeightByLocation(newRecord);
+      if (type === context.UserEventType.CREATE) {
+        updateTotalWeightByLocation(
+          newRecord,
+          newRecordObject.tableTotalWeight,
+          newRecordObject.cacheItems
+        );
+      } else {
+        if (oldRecord && newRecord) {
+          var oldRecordObject = getTotalWeightByLocation(oldRecord);
+          if (!deepEqual(newRecordObject, oldRecordObject)) {
+            updateTotalWeightByLocation(
+              newRecord,
+              newRecordObject.tableTotalWeight,
+              newRecordObject.cacheItems
+            );
+          }
+        }
+      }
+    } catch (error) {
+      log.error({
+        title: "Error updateTotalWeightByLocation",
+        details: error.message
+      });
+    }
+  }
 
   function afterSubmit(context) {
     var newRecord = context.newRecord;
@@ -50,44 +81,13 @@ define(["./Module/salesEffective"], function(salesEffective) {
   /**
    * Build Table Total Weight for View Mode
    * @param {*} newRecord
+   * @param {*} tableTotalWeight
    */
-  function buildTableTotalWeight(newRecord) {
+  function buildTableTotalWeight(newRecord, tableTotalWeight) {
     // Add Util Function Replace All
     String.prototype.replaceAll = function(search, replacement) {
       return this.split(search).join(replacement);
     };
-    const totalLine = newRecord.getLineCount({ sublistId: "item" });
-    var tableTotalWeight = {};
-    for (var index = 0; index < totalLine; index++) {
-      var quantity = newRecord.getSublistValue({
-        sublistId: "item",
-        fieldId: "quantity",
-        line: index
-      });
-      var weightinlb = newRecord.getSublistValue({
-        sublistId: "item",
-        fieldId: "custcol45", // weightinlb
-        line: index
-      });
-      var location = newRecord.getSublistValue({
-        sublistId: "item",
-        fieldId: "location_display",
-        line: index
-      });
-      if (location === undefined || location === "") {
-        if (tableTotalWeight["None"] === undefined) {
-          tableTotalWeight["None"] = 0;
-        }
-        tableTotalWeight["None"] =
-          tableTotalWeight["None"] + quantity * weightinlb;
-      } else {
-        if (tableTotalWeight[location] === undefined) {
-          tableTotalWeight[location] = 0;
-        }
-        tableTotalWeight[location] =
-          tableTotalWeight[location] + quantity * weightinlb;
-      }
-    }
     var htmlTableTotalWeight =
       '<span class="smallgraytextnolink uir-label"><span class="smallgraytextnolink">Shipping Rates</span></span><table id="tableTotalWeight" class="lx-table"><thead><tr><th>Location</th><th>Total Weight</th><th>Shipping Method</th><th>Freight Rate</th></tr></thead><tbody>';
     for (var key in tableTotalWeight) {
@@ -105,6 +105,124 @@ define(["./Module/salesEffective"], function(salesEffective) {
       fieldId: "custbody_table_total_weight",
       value: htmlTableTotalWeight
     });
+  }
+
+  /**
+   * Update Total Weight By Location
+   * @param {*} newRecord
+   * @param {*} tableTotalWeight
+   * @param {*} cacheItems
+   */
+  function updateTotalWeightByLocation(
+    newRecord,
+    tableTotalWeight,
+    cacheItems
+  ) {
+    // Update Data for each line
+    for (var index = 0; index < Object.keys(cacheItems).length; index++) {
+      var location = cacheItems[index];
+
+      if (location === undefined || location === "") {
+        newRecord.setSublistValue({
+          sublistId: "item",
+          fieldId: "custcol_total_weight_by_location",
+          line: index,
+          value: tableTotalWeight["None"]
+        });
+      } else {
+        newRecord.setSublistValue({
+          sublistId: "item",
+          fieldId: "custcol_total_weight_by_location",
+          line: index,
+          value: tableTotalWeight[location]
+        });
+      }
+      newRecord.setSublistValue({
+        sublistId: "item",
+        fieldId: "custcol_shipping_method",
+        line: index,
+        value: ""
+      });
+      newRecord.setSublistValue({
+        sublistId: "item",
+        fieldId: "custcol_freight_rate_by_location",
+        line: index,
+        value: ""
+      });
+    }
+  }
+
+  /**
+   * Get Total Weight By Location
+   * @param {*} record
+   */
+  function getTotalWeightByLocation(record) {
+    const totalLine = record.getLineCount({ sublistId: "item" });
+    var tableTotalWeight = {};
+    var cacheItems = {};
+    for (var index = 0; index < totalLine; index++) {
+      var quantity = record.getSublistValue({
+        sublistId: "item",
+        fieldId: "quantity",
+        line: index
+      });
+      var weightinlb = record.getSublistValue({
+        sublistId: "item",
+        fieldId: "custcol45", // weightinlb
+        line: index
+      });
+      var location = record.getSublistValue({
+        sublistId: "item",
+        fieldId: "location_display",
+        line: index
+      });
+      if (location === undefined || location === "") {
+        if (tableTotalWeight["None"] === undefined) {
+          tableTotalWeight["None"] = 0;
+        }
+        tableTotalWeight["None"] =
+          tableTotalWeight["None"] + quantity * weightinlb;
+      } else {
+        if (tableTotalWeight[location] === undefined) {
+          tableTotalWeight[location] = 0;
+        }
+        tableTotalWeight[location] =
+          tableTotalWeight[location] + quantity * weightinlb;
+      }
+      cacheItems[index] = location;
+    }
+
+    return { tableTotalWeight: tableTotalWeight, cacheItems: cacheItems };
+  }
+
+  /**
+   * Compare Object
+   * @param {*} obj1
+   * @param {*} obj2
+   */
+  function deepEqual(obj1, obj2) {
+    if (obj1 === obj2) {
+      return true;
+    } else if (isObject(obj1) && isObject(obj2)) {
+      if (Object.keys(obj1).length !== Object.keys(obj2).length) {
+        return false;
+      }
+      for (var prop in obj1) {
+        if (!deepEqual(obj1[prop], obj2[prop])) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // Private
+    function isObject(obj) {
+      if (typeof obj === "object" && obj != null) {
+        return true;
+      } else {
+        return false;
+      }
+    }
   }
 
   return {
