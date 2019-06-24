@@ -87,6 +87,7 @@ define([], function() {
 
     const totalLine = currentRecord.getLineCount({ sublistId: "item" });
     var tableTotalWeight = {};
+    var totalWeight = 0;
     document.querySelector("#tableTotalWeight tbody").innerHTML = "";
     for (var index = 0; index < totalLine; index++) {
       const quantity = currentRecord.getSublistValue({
@@ -117,7 +118,13 @@ define([], function() {
         tableTotalWeight[location] =
           tableTotalWeight[location] + quantity * weightinlb;
       }
+      totalWeight += (quantity * weightinlb);
     }
+    // Set Total Weight
+    currentRecord.setValue({
+      fieldId: "custbody_total_weight",
+      value: totalWeight
+    });
     var htmlTableTotalWeight = "";
     for (var key in tableTotalWeight) {
       var tplRow = document.getElementById("tplTableTotalWeight").innerHTML;

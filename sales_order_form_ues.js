@@ -30,6 +30,7 @@ define(["./Module/salesEffective"], function(salesEffective) {
     if (context.type === context.UserEventType.VIEW) {
       try {
         var newRecordObject = getTotalWeightByLocation(newRecord);
+
         buildTableTotalWeight(newRecord, newRecordObject.tableTotalWeight);
       } catch (err) {
         log.error({
@@ -190,6 +191,13 @@ define(["./Module/salesEffective"], function(salesEffective) {
           tableTotalWeight[location] + quantity * weightinlb;
       }
       cacheItems[index] = location;
+      // Update Total Weight Each Line
+      record.setSublistValue({
+        sublistId: "item",
+        fieldId: "custcol_total_weight",
+        line: index,
+        value: (quantity * weightinlb)
+      });
     }
 
     return { tableTotalWeight: tableTotalWeight, cacheItems: cacheItems };

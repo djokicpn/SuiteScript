@@ -187,6 +187,13 @@ define([], function() {
           tableTotalWeight[location] + quantity * weightinlb;
       }
       cacheItems[index] = location;
+      // Update Total Weight Each Line
+      record.setSublistValue({
+        sublistId: "item",
+        fieldId: "custcol_total_weight",
+        line: index,
+        value: quantity * weightinlb
+      });
     }
 
     return { tableTotalWeight: tableTotalWeight, cacheItems: cacheItems };
