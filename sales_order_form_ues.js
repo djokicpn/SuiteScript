@@ -196,7 +196,7 @@ define(["./Module/salesEffective"], function(salesEffective) {
         sublistId: "item",
         fieldId: "custcol_total_weight",
         line: index,
-        value: (quantity * weightinlb)
+        value: quantity * weightinlb
       });
     }
 

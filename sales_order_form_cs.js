@@ -19,6 +19,8 @@ define([], function() {
     const currentRecord = context.currentRecord;
     try {
       buildTableTotalWeight(currentRecord);
+
+      removeOptionsShipAndBill();
     } catch (error) {
       console.log("pageInit Error: ", error);
     }
@@ -72,6 +74,23 @@ define([], function() {
     return true; //Return true if the line is valid.
   }
 
+  /**
+   * Field Changed
+   * @param {*} context
+   */
+  function fieldChanged(context) {
+    //shipaddresslist, billaddresslist
+    const fieldId = context.fieldId;
+    const sublistId = context.sublistId;
+    if (
+      sublistId === null &&
+      (fieldId === "shipaddresslist" || fieldId === "billaddresslist")
+    ) {
+      removeOptionsShipAndBill();
+    }
+    return;
+  }
+
   /** HELPPER FUNCTIONS **/
 
   /**
@@ -117,7 +136,7 @@ define([], function() {
         tableTotalWeight[location] =
           tableTotalWeight[location] + quantity * weightinlb;
       }
-      totalWeight += (quantity * weightinlb);
+      totalWeight += quantity * weightinlb;
     }
     // Set Total Weight
     currentRecord.setValue({
@@ -137,11 +156,41 @@ define([], function() {
   }
 
   /**
+   * remove Select Option
+   * @param {*} fieldName
+   * @param {*} value
+   */
+  function removeSelectOption(fieldName, value) {
+    var form =
+      typeof ftabs != "undefined" && ftabs[getFieldName(fieldName)] != null
+        ? document.forms[ftabs[getFieldName(fieldName)] + "_form"]
+        : document.forms[0];
+    var fld = getFormElement(form, getFieldName(fieldName));
+    if (fld != null) {
+      if (value != null) deleteOneSelectOption(fld, value);
+      else deleteAllSelectOptions(fld, window);
+    }
+  }
+
+  /**
+   * Remove Options Ship and Bill
+   */
+  function removeOptionsShipAndBill() {
+    // Remove [New, Custom] options billaddresslist
+    removeSelectOption("billaddresslist", "-1");
+    removeSelectOption("billaddresslist", "-2");
+    // Remove [New, Custom] options shipaddresslist
+    removeSelectOption("shipaddresslist", "-1");
+    removeSelectOption("shipaddresslist", "-2");
+  }
+
+  /**
    * Export Events
    */
   var exports = {};
   exports.pageInit = pageInit;
   exports.sublistChanged = sublistChanged;
   exports.validateLine = validateLine;
+  exports.fieldChanged = fieldChanged;
   return exports;
 });
