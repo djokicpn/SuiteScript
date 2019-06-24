@@ -65,9 +65,18 @@ define([], function() {
         currentRecord.setCurrentSublistValue({
           sublistId: sublistId,
           fieldId: "custcol_total_weight",
-          value: quantity * itemWeight,
-          ignoreFieldChange: true
+          value: quantity * itemWeight
         });
+        const location = currentRecord.getValue({
+          fieldId: "location"
+        });
+        if (location) {
+          currentRecord.setCurrentSublistValue({
+            sublistId: sublistId,
+            fieldId: "location",
+            value: location
+          });
+        }
       }
     } catch (error) {
       console.log("validateLine Error: ", error);
