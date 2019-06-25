@@ -192,6 +192,12 @@ define([], function() {
     // Remove [New, Custom] options shipaddresslist
     removeSelectOption("shipaddresslist", "-1");
     removeSelectOption("shipaddresslist", "-2");
+    
+    // Hide Button
+    document.getElementById('billaddresslist_popup_new').setAttribute('style', 'display:none !important');
+    document.getElementById('billaddresslist_popup_link').setAttribute('style', 'display:none !important');
+    document.getElementById('shipaddresslist_popup_new').setAttribute('style', 'display:none !important');
+    document.getElementById('shipaddresslist_popup_link').setAttribute('style', 'display:none !important');
   }
 
   /**
