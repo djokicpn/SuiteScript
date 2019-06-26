@@ -1,30 +1,23 @@
 <template id="tplTableTotalWeight">
   <tr id="row-____ID___">
     <td>____LOCATIN___</td>
-    <td style="text-align: center;" id="totalWeight-____ID___" data-total-weight="____TOTAL_WEIGHT___">____TOTAL_WEIGHT___</td>
+    <td style="text-align: center;" id="totalWeight-____ID___" data-total-weight="____TOTAL_WEIGHT___">
+      ____TOTAL_WEIGHT___</td>
     <td>
       <select id="shippingMethod-____ID___">
         <option value="rlcarriers">R+L Carriers</option>
         <option value="odfl">ODFL</option>
       </select>
     </td>
-    <td style="text-align: center;"></td>
+    <td style="text-align: center;" id="freightRate-____ID___"></td>
     <td>
-      <button
-        type="button"
-        class="button-blue-small"
-        id="btnOpenShippingModal"
-        data-id="____ID___"
-        title="Calculate"
-      >
+      <button type="button" class="button-blue-small" id="btnOpenShippingModal" data-id="____ID___" title="Calculate">
         Calc
       </button>
     </td>
   </tr>
 </template>
-<span class="smallgraytextnolink uir-label"
-  ><span class="smallgraytextnolink">Shipping Rates</span></span
->
+<span class="smallgraytextnolink uir-label"><span class="smallgraytextnolink">Shipping Rates</span></span>
 <table id="tableTotalWeight" class="lx-table">
   <thead>
     <tr>
@@ -53,6 +46,7 @@
     border-spacing: 0;
     font-size: 12px;
   }
+
   .lx-table thead th {
     background-color: #607799;
     border: solid 1px #ddeeee;
@@ -60,16 +54,19 @@
     padding: 10px;
     text-align: left;
   }
+
   .lx-table tbody td {
     border: solid 1px #ddeeee;
     color: #000;
     padding: 10px;
   }
+
   .lx-table tfoot td {
     border: solid 1px #ddeeee;
     color: #000;
     padding: 10px;
   }
+
   .button-blue-small {
     background-color: #607799;
     border: 0.1rem solid #607799;
@@ -86,6 +83,7 @@
     text-decoration: none;
     white-space: nowrap;
   }
+
   .button-blue-small:hover {
     background-color: #606c76;
     border-color: #606c76;
