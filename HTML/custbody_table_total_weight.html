@@ -1,15 +1,17 @@
 <template id="tplTableTotalWeight">
   <tr id="row-____ID___">
     <td>____LOCATIN___</td>
-    <td style="text-align: center;" id="totalWeight-____ID___" data-total-weight="____TOTAL_WEIGHT___">
+    <td style="text-align: center;" class="totalWeight" id="totalWeight-____ID___" data-total-weight="____TOTAL_WEIGHT___">
       ____TOTAL_WEIGHT___</td>
     <td>
       <select id="shippingMethod-____ID___">
-        <option value="rlcarriers">R+L Carriers</option>
-        <option value="odfl">ODFL</option>
+        <option value="ODFL">ODFL</option>
+        <option value="RL_CARRIERS">R+L Carriers</option>
+        <option value="WILL_CALL">Will Call</option>
+        <option value="LEXOR_TRUCK">Lexor Truck</option>
       </select>
     </td>
-    <td style="text-align: center;" id="freightRate-____ID___"></td>
+    <td style="text-align: center;" class="freightRate" id="freightRate-____ID___" data-freight-rate="0">0</td>
     <td>
       <button type="button" class="button-blue-small" id="btnOpenShippingModal" data-id="____ID___" title="Calculate">
         Calc
@@ -32,9 +34,9 @@
   <tfoot>
     <tr>
       <td>Total</td>
-      <td id="tblTotalWeight" style="text-align: center;"></td>
+      <td id="tblTotalWeight" style="text-align: center;">0</td>
       <td></td>
-      <td id="tblFreightRate" style="text-align: center;"></td>
+      <td id="tblFreightRate" style="text-align: center;">0</td>
       <td></td>
     </tr>
   </tfoot>
