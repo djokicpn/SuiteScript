@@ -301,73 +301,55 @@ define([
         switch (shippingMethodId) {
           case "ODFL":
             if (id !== "0") {
-              const freightRate = getFreightRateODFL(
-                id,
-                customerShipping,
-                totalWeight
-              );
-              updateUI(id, freightRate, currentRecord);
+              showMicroModal(shippingMethod, false);
+              setTimeout(function() {
+                const freightRate = getFreightRateODFL(
+                  id,
+                  customerShipping,
+                  totalWeight
+                );
+                updateUI(id, freightRate, currentRecord, function() {
+                  MicroModal.close("modal-shipping-method");
+                });
+              }, 400);
             } else {
-              document.querySelector(
-                "#modal-shipping-method-title span"
-              ).innerHTML = shippingMethod;
-              MicroModal.show("modal-shipping-method", {
-                disableScroll: true,
-                closeTrigger: "data-micromodal-close",
-                awaitCloseAnimation: true,
-                onShow: function(modal) {
-                  document.querySelector(
-                    "#modal-shipping-method-content"
-                  ).innerHTML = "<p>This location not available.</p>";
-                },
-                onClose: function(modal) {
-                  document.querySelector(
-                    "#modal-shipping-method-content"
-                  ).innerHTML =
-                    '<div class="lds-ripple"><div></div><div></div></div>';
-                }
+              showMicroModal(shippingMethod, function(modal) {
+                document.querySelector(
+                  "#modal-shipping-method-content"
+                ).innerHTML = "<p>This location not available.</p>";
               });
-              updateUI(id, '', currentRecord);
+              updateUI(id, "", currentRecord);
             }
             break;
           case "RL_CARRIERS":
             if (id !== "0") {
-              search.lookupFields
-                .promise({
-                  type: search.Type.LOCATION,
-                  id: id,
-                  columns: ["city", "country", "zip", "state"]
-                })
-                .then(function(originAddress) {
-                  const freightRate = getFreightRateRLC(
-                    id,
-                    originAddress,
-                    customerShipping,
-                    totalWeight
-                  );
-                  updateUI(id, freightRate, currentRecord);
-                });
+              showMicroModal(shippingMethod, false);
+              setTimeout(function() {
+                search.lookupFields
+                  .promise({
+                    type: search.Type.LOCATION,
+                    id: id,
+                    columns: ["city", "country", "zip", "state"]
+                  })
+                  .then(function(originAddress) {
+                    const freightRate = getFreightRateRLC(
+                      id,
+                      originAddress,
+                      customerShipping,
+                      totalWeight
+                    );
+                    updateUI(id, freightRate, currentRecord, function() {
+                      MicroModal.close("modal-shipping-method");
+                    });
+                  });
+              }, 400);
             } else {
-              document.querySelector(
-                "#modal-shipping-method-title span"
-              ).innerHTML = shippingMethod;
-              MicroModal.show("modal-shipping-method", {
-                disableScroll: true,
-                closeTrigger: "data-micromodal-close",
-                awaitCloseAnimation: true,
-                onShow: function(modal) {
-                  document.querySelector(
-                    "#modal-shipping-method-content"
-                  ).innerHTML = "<p>This location not available.</p>";
-                },
-                onClose: function(modal) {
-                  document.querySelector(
-                    "#modal-shipping-method-content"
-                  ).innerHTML =
-                    '<div class="lds-ripple"><div></div><div></div></div>';
-                }
+              showMicroModal(shippingMethod, function(modal) {
+                document.querySelector(
+                  "#modal-shipping-method-content"
+                ).innerHTML = "<p>This location not available.</p>";
               });
-              updateUI(id, '', currentRecord);
+              updateUI(id, "", currentRecord);
             }
 
             break;
@@ -387,11 +369,13 @@ define([
    * @param {*} currentRecord
    */
   function bindingSelectShippingMethodEvents(currentRecord) {
-    var selectShippingMethod = document.querySelectorAll("#tableTotalWeight .shippingMethod");
+    var selectShippingMethod = document.querySelectorAll(
+      "#tableTotalWeight .shippingMethod"
+    );
     for (var i = 0; i < selectShippingMethod.length; i++) {
       selectShippingMethod[i].addEventListener("change", function(event) {
         const id = this.getAttribute("data-id");
-        updateUI(id, '', currentRecord);
+        updateUI(id, "", currentRecord);
       });
     }
   }
@@ -580,20 +564,12 @@ define([
   /**
    * Update UI
    */
-  function updateUI(id, freightRate, currentRecord) {
+  function updateUI(id, freightRate, currentRecord, done) {
     document.getElementById("freightRate-" + id).innerHTML = freightRate;
     document
       .getElementById("freightRate-" + id)
       .setAttribute("data-freight-rate", freightRate);
 
-    // Update Total
-    updateTotalUI(currentRecord);
-  }
-
-  /**
-   * Update Total
-   */
-  function updateTotalUI(currentRecord) {
     // Update Total
     const freightRateRows = document.querySelectorAll(
       "#tableTotalWeight .freightRate"
@@ -605,7 +581,7 @@ define([
         var freightRate = parseFloat(
           n.getAttribute("data-freight-rate").trim()
         );
-        if(isNaN(freightRate)) {
+        if (isNaN(freightRate)) {
           isDone = false;
         }
         return !isNaN(freightRate) ? freightRate : 0;
@@ -617,7 +593,32 @@ define([
     document.getElementById("tblFreightRate").innerHTML = totalFreightRate;
     currentRecord.setValue({
       fieldId: "custbodytotal_freight_rate",
-      value: isDone ? totalFreightRate : ''
+      value: isDone ? totalFreightRate : ""
+    });
+
+    if (done) {
+      done();
+    }
+  }
+
+  /**
+   * Show Modal
+   * @param {*} title
+   * @param {*} onShow
+   */
+  function showMicroModal(title, onShow) {
+    document.querySelector(
+      "#modal-shipping-method-title span"
+    ).innerHTML = title;
+    MicroModal.show("modal-shipping-method", {
+      disableScroll: true,
+      closeTrigger: "data-micromodal-close",
+      awaitCloseAnimation: true,
+      onShow: onShow ? onShow : function(params) {},
+      onClose: function(modal) {
+        document.querySelector("#modal-shipping-method-content").innerHTML =
+          '<div class="lds-ripple"><div></div><div></div></div>';
+      }
     });
   }
 
