@@ -1,5 +1,5 @@
 /**
- * REST API for odfl
+ * REST API for R+L CARRIERS
  *
  * @NApiVersion 2.x
  * @NScriptType Restlet
@@ -12,9 +12,7 @@ define(["N/https", "N/search", "N/xml", "/SuiteScripts/Module/Utils"], function(
   _U
 ) {
   /** VARS **/
-  const USERNAME = "***REMOVED***";
-  const PASSWORD = "***REMOVED***";
-  const CUS_ACCOUNT = "***REMOVED***";
+  const API_KEY = "***REMOVED***";
 
   /**
    * POST

@@ -24,6 +24,7 @@ define([
     const currentRecord = context.currentRecord;
     try {
       buildTableTotalWeight(currentRecord, function() {
+        bindingSelectShippingMethodEvents(currentRecord);
         openModal(currentRecord);
       });
 
@@ -53,9 +54,10 @@ define([
     if (sublistId === "item") {
       try {
         buildTableTotalWeight(currentRecord, function() {
+          bindingSelectShippingMethodEvents(currentRecord);
           openModal(currentRecord);
-		});
-		document.getElementById("tblFreightRate").innerHTML = 0;
+        });
+        document.getElementById("tblFreightRate").innerHTML = 0;
         currentRecord.setValue({
           fieldId: "custbodytotal_freight_rate",
           value: ""
@@ -89,16 +91,6 @@ define([
           fieldId: "custcol_total_weight",
           value: quantity * itemWeight
         });
-        const location = currentRecord.getValue({
-          fieldId: "location"
-        });
-        if (location) {
-          currentRecord.setCurrentSublistValue({
-            sublistId: sublistId,
-            fieldId: "location",
-            value: location
-          });
-        }
       }
     } catch (error) {
       console.log("validateLine Error: ", error);
@@ -335,7 +327,7 @@ define([
                     '<div class="lds-ripple"><div></div><div></div></div>';
                 }
               });
-              updateUI(id, 0, currentRecord);
+              updateUI(id, '', currentRecord);
             }
             break;
           case "RL_CARRIERS":
@@ -375,7 +367,7 @@ define([
                     '<div class="lds-ripple"><div></div><div></div></div>';
                 }
               });
-              updateUI(id, 0, currentRecord);
+              updateUI(id, '', currentRecord);
             }
 
             break;
@@ -386,6 +378,20 @@ define([
             updateUI(id, 0, currentRecord);
             break;
         }
+      });
+    }
+  }
+
+  /**
+   * Binding Select Shipping Method Events
+   * @param {*} currentRecord
+   */
+  function bindingSelectShippingMethodEvents(currentRecord) {
+    var selectShippingMethod = document.querySelectorAll("#tableTotalWeight .shippingMethod");
+    for (var i = 0; i < selectShippingMethod.length; i++) {
+      selectShippingMethod[i].addEventListener("change", function(event) {
+        const id = this.getAttribute("data-id");
+        updateUI(id, '', currentRecord);
       });
     }
   }
@@ -582,46 +588,6 @@ define([
 
     // Update Total
     updateTotalUI(currentRecord);
-
-    // Update Sublist
-    // const shippingMethodEl = document.getElementById("shippingMethod-" + id);
-    // const shippingMethodId = shippingMethodEl.value;
-    // const countItems = currentRecord.getLineCount({ sublistId: "item" });
-    // for (var index = 0; index < countItems; index++) {
-    //   currentRecord.selectLine({
-    //     sublistId: "item",
-    //     line: index
-    //   });
-    //   var location = currentRecord.getCurrentSublistValue({
-    //     sublistId: "item",
-    //     fieldId: "location"
-    //   });
-    //   if (location == "") {
-    //     location = 0;
-    //   }
-    //   const custcol_shipping_method = currentRecord.getCurrentSublistValue({
-    //     sublistId: "item",
-    //     fieldId: "custcol_shipping_method"
-    //   });
-    //   if (location == id) {
-    //     currentRecord.setCurrentSublistValue({
-    //       sublistId: "item",
-    //       fieldId: "custcol_shipping_method",
-    //       value: shippingMethodId,
-    //       ignoreFieldChange: true
-    //     });
-    //     currentRecord.setCurrentSublistValue({
-    //       sublistId: "item",
-    //       fieldId: "custcol_freight_rate_by_location",
-    //       value: freightRate,
-    //       ignoreFieldChange: true
-    //     });
-    //     currentRecord.commitLine({
-    //       sublistId: "item"
-    //     });
-    //   }
-
-    // }
   }
 
   /**
@@ -632,12 +598,16 @@ define([
     const freightRateRows = document.querySelectorAll(
       "#tableTotalWeight .freightRate"
     );
+    var isDone = true;
     const arrayfreightRateRows = Array.prototype.map.call(
       freightRateRows,
       function(n) {
         var freightRate = parseFloat(
           n.getAttribute("data-freight-rate").trim()
         );
+        if(isNaN(freightRate)) {
+          isDone = false;
+        }
         return !isNaN(freightRate) ? freightRate : 0;
       }
     );
@@ -647,7 +617,7 @@ define([
     document.getElementById("tblFreightRate").innerHTML = totalFreightRate;
     currentRecord.setValue({
       fieldId: "custbodytotal_freight_rate",
-      value: totalFreightRate
+      value: isDone ? totalFreightRate : ''
     });
   }
 
