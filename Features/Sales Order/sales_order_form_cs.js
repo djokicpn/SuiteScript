@@ -10,8 +10,9 @@ define([
   "N/https",
   "N/search",
   "N/url",
-  "/SuiteScripts/lib/micromodal.min"
-], function(https, search, url, MicroModal) {
+  "/SuiteScripts/lib/micromodal.min",
+  "/SuiteScripts/Module/parseTable"
+], function(https, search, url, MicroModal, parser) {
   /* === VARS === */
 
   /* === EVENTS FUNCTIONS === */
@@ -24,6 +25,7 @@ define([
     const currentRecord = context.currentRecord;
     try {
       buildTableTotalWeight(currentRecord, function() {
+        loadData(currentRecord);
         bindingSelectShippingMethodEvents(currentRecord);
         openModal(currentRecord);
       });
@@ -507,7 +509,7 @@ define([
                 var NetCharge = rateResultServiceLevels[i].NetCharge[
                   "#text"
                 ].replace("$", "");
-                result = parseFloat(NetCharge);
+                result = parseFloat(NetCharge) + parseFloat(NetCharge) * 0.1; // Add 10%
                 break;
               }
             }
@@ -517,7 +519,7 @@ define([
               var NetCharge = rateResultServiceLevels.NetCharge[
                 "#text"
               ].replace("$", "");
-              result = parseFloat(NetCharge);
+              result = parseFloat(NetCharge) + parseFloat(NetCharge) * 0.1; // Add 10%
             }
           }
         } else {
@@ -527,7 +529,7 @@ define([
     } catch (error) {
       console.log(error);
     }
-    return result;
+    return result.toFixed(2);
   }
 
   /**
@@ -596,8 +598,51 @@ define([
       value: isDone ? totalFreightRate : ""
     });
 
+    saveData(currentRecord);
+
     if (done) {
       done();
+    }
+  }
+
+  /**
+   * Save Data
+   * @param {*} currentRecord
+   */
+  function saveData(currentRecord) {
+    var attributes = [
+      "data-location",
+      "data-freight-rate",
+      "data-total-weight"
+    ];
+    const dataJSON = parser.parseTable(
+      document.getElementById("tableTotalWeight"),
+      attributes
+    );
+    currentRecord.setValue({
+      fieldId: "custbody_table_total_weight_data",
+      value: JSON.stringify(dataJSON)
+    });
+  }
+
+  /**
+   * Load data from JSON
+   * @param {*} currentRecord
+   */
+  function loadData(currentRecord) {
+    const dataJSON = currentRecord.getValue({
+      fieldId: "custbody_table_total_weight_data"
+    });
+    try {
+      const dataObj = JSON.parse(dataJSON);
+      for (var index = 0; index < dataObj.length; index++) {
+        const element = dataObj[index];
+        document.getElementById("shippingMethod-" + element.LOCATION).value =
+          element.SHIPPING_METHOD;
+        updateUI(element.LOCATION, element.FREIGHT_RATE, currentRecord, false);
+      }
+    } catch (error) {
+      console.log("Nothing to load :)");
     }
   }
 
