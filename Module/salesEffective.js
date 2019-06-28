@@ -5,6 +5,8 @@
  * @author trungpv <trung@lexor.com>
  */
 define(["N/record", "N/search"], function(record, search) {
+  const SALE_EFFECTIVE_RATE = 50;
+
   function updateSalesEffective(salesOrderId) {
     if (salesOrderId) {
       try {
@@ -52,7 +54,7 @@ define(["N/record", "N/search"], function(record, search) {
               totalDeposited =
                 parseFloat(totalDeposited) + parseFloat(totalValue);
               var totalDepositedPercent = (totalDeposited / total) * 100;
-              if (totalDepositedPercent >= 25) {
+              if (totalDepositedPercent >= SALE_EFFECTIVE_RATE) {
                 salesEffectiveDate = dateReceived
                   ? new Date(dateReceived)
                   : new Date(trandate);
