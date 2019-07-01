@@ -8,12 +8,21 @@
  */
 define([
   "N/https",
-  "N/search",
   "N/url",
   "/SuiteScripts/lib/micromodal.min",
   "/SuiteScripts/Module/parseTable"
-], function(https, search, url, MicroModal, parser) {
+], function(https, url, MicroModal, parser) {
   /* === VARS === */
+  const UPS_SERVICES = {
+    // domestic
+    "03": "UPS Ground",
+    "12": "UPS 3 Day Select",
+    "02": "UPS 2nd Day Air",
+    "59": "UPS 2nd Day Air A.M.",
+    "13": "UPS Next Day Air Saver",
+    "01": "UPS Next Day Air",
+    "14": "UPS Next Day Air Early"
+  };
 
   /* === EVENTS FUNCTIONS === */
 
@@ -327,23 +336,14 @@ define([
             if (id !== "0") {
               showMicroModal(shippingMethod, false);
               setTimeout(function() {
-                search.lookupFields
-                  .promise({
-                    type: search.Type.LOCATION,
-                    id: id,
-                    columns: ["city", "country", "zip", "state"]
-                  })
-                  .then(function(originAddress) {
-                    const freightRate = getFreightRateRLC(
-                      id,
-                      originAddress,
-                      customerShipping,
-                      totalWeight
-                    );
-                    updateUI(id, freightRate, currentRecord, function() {
-                      MicroModal.close("modal-shipping-method");
-                    });
-                  });
+                const freightRate = getFreightRateRLC(
+                  id,
+                  customerShipping,
+                  totalWeight
+                );
+                updateUI(id, freightRate, currentRecord, function() {
+                  MicroModal.close("modal-shipping-method");
+                });
               }, 400);
             } else {
               showMicroModal(shippingMethod, function(modal) {
@@ -354,6 +354,37 @@ define([
               updateUI(id, "", currentRecord);
             }
 
+            break;
+          case "UPS_PACKAGE":
+            if (id !== "0") {
+              showMicroModal(shippingMethod, false);
+              setTimeout(function() {
+                const dataObj = getFreightRateUPSPackage(
+                  id,
+                  customerShipping,
+                  totalWeight
+                );
+                if (dataObj) {
+                  const htmlUPSServices = buildUPSPackageServices(dataObj.data);
+                  document.querySelector(
+                    "#modal-shipping-method-content"
+                  ).innerHTML = htmlUPSServices;
+                  bindingUPSPackageServices(id, currentRecord);
+                } else {
+                  document.querySelector(
+                    "#modal-shipping-method-content"
+                  ).innerHTML =
+                    "<p>Something went wrong. Please try again!</p>";
+                }
+              }, 400);
+            } else {
+              showMicroModal(shippingMethod, function(modal) {
+                document.querySelector(
+                  "#modal-shipping-method-content"
+                ).innerHTML = "<p>This location not available.</p>";
+              });
+              updateUI(id, "", currentRecord);
+            }
             break;
           case "LEXOR_TRUCK":
             updateUI(id, 100, currentRecord);
@@ -388,6 +419,7 @@ define([
    */
   function getCustomer(currentRecord) {
     const result = {};
+    result.addr1 = nlapiGetFieldValue("shipaddr1");
     result.country = currentRecord.getValue("shipcountry");
     result.city = nlapiGetFieldValue("shipcity");
     result.state = currentRecord.getValue("shipstate");
@@ -402,134 +434,34 @@ define([
   }
 
   /**
-   * Build Payload Shipping Method http://www.rlcarriers.com/
-   */
-  function requestPayload(origin, destination, weight) {
-    var payload =
-      '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:rlc="http://www.rlcarriers.com/">';
-    payload += "<soapenv:Header/>";
-    payload += "<soapenv:Body>";
-    payload += "    <rlc:GetRateQuote>";
-    payload +=
-      "        <rlc:APIKey>***REMOVED***</rlc:APIKey>";
-    payload += "            <rlc:request>";
-    payload += "                <rlc:QuoteType>Domestic</rlc:QuoteType>";
-    payload += "                <rlc:CODAmount>0</rlc:CODAmount>";
-    payload += "                <rlc:Origin>";
-    payload += "                    <rlc:City>" + origin.city + "</rlc:City>";
-    payload +=
-      "                    <rlc:StateOrProvince>" +
-      origin.state +
-      "</rlc:StateOrProvince>";
-    payload +=
-      "                    <rlc:ZipOrPostalCode>" +
-      origin.zip +
-      "</rlc:ZipOrPostalCode>";
-    payload +=
-      "                    <rlc:CountryCode>" +
-      origin.countryCode +
-      "</rlc:CountryCode>";
-    payload += "                </rlc:Origin>";
-    payload += "                <rlc:Destination>";
-    payload +=
-      "                    <rlc:City>" + destination.city + "</rlc:City>";
-    payload +=
-      "                    <rlc:StateOrProvince>" +
-      destination.state +
-      "</rlc:StateOrProvince>";
-    payload +=
-      "                    <rlc:ZipOrPostalCode>" +
-      destination.zip +
-      "</rlc:ZipOrPostalCode>";
-    payload +=
-      "                    <rlc:CountryCode>" +
-      destination.countryCode +
-      "</rlc:CountryCode>";
-    payload += "                </rlc:Destination>";
-    payload += "                <rlc:Items>";
-    payload += "                    <rlc:Item>";
-    payload += "                        <rlc:Class>200.0</rlc:Class>";
-    payload +=
-      "                        <rlc:Weight>" + weight + "</rlc:Weight>";
-    payload += "                        <rlc:Width>0</rlc:Width>";
-    payload += "                        <rlc:Height>0</rlc:Height>";
-    payload += "                        <rlc:Length>0</rlc:Length>";
-    payload += "                    </rlc:Item>";
-    payload += "                </rlc:Items>";
-    payload += "                <rlc:DeclaredValue>0</rlc:DeclaredValue>";
-    payload += "                <rlc:Accessorials></rlc:Accessorials>";
-    payload +=
-      "                <rlc:OverDimensionList></rlc:OverDimensionList>";
-    payload += "                <rlc:Pallets></rlc:Pallets>";
-    payload += "            </rlc:request>";
-    payload += "        </rlc:GetRateQuote>";
-    payload += "    </soapenv:Body>";
-    payload += "</soapenv:Envelope>";
-    return payload;
-  }
-
-  /**
    * get Freight Rate R+L Carriers
    * @param {*} id
    * @param {*} destination
    * @param {*} weight
    */
-  function getFreightRateRLC(id, originAddress, destination, weight) {
+  function getFreightRateRLC(id, customerShipping, weight) {
     var result = 0;
-    // Set countryCode
-    if (originAddress.country === "US") {
-      originAddress.countryCode = "USA";
-    } else if (originAddress.country === "CA") {
-      originAddress.countryCode = "CAN";
-    }
-    const payload = requestPayload(originAddress, destination, weight);
-    try {
-      var res = https.post({
-        url: "https://api.rlcarriers.com/1.0.3/RateQuoteService.asmx",
-        body: payload,
-        headers: { "Content-Type": "text/xml; charset=UTF-8" }
-      });
-      if (res.code === 200) {
-        var responseJSON = res.body;
-        responseJSON = nlapiStringToXML(responseJSON);
-        responseJSON = xmlToJson(responseJSON);
-        var envelope = responseJSON["soap:Envelope"];
-        var body = envelope["soap:Body"];
-
-        var rateRequestResultSuccess =
-          body.GetRateQuoteResponse.GetRateQuoteResult.WasSuccess["#text"];
-        if (rateRequestResultSuccess == "true") {
-          var rateResultServiceLevels =
-            body.GetRateQuoteResponse.GetRateQuoteResult.Result.ServiceLevels
-              .ServiceLevel;
-          if (rateResultServiceLevels.length > 0) {
-            for (i = 0; i < rateResultServiceLevels.length; i++) {
-              var code = rateResultServiceLevels[i].Code["#text"];
-              if (code == "STD") {
-                var NetCharge = rateResultServiceLevels[i].NetCharge[
-                  "#text"
-                ].replace("$", "");
-                result = parseFloat(NetCharge) + parseFloat(NetCharge) * 0.1; // Add 10%
-                break;
-              }
-            }
-          } else {
-            var code = rateResultServiceLevels.Code["#text"];
-            if (code == "STD") {
-              var NetCharge = rateResultServiceLevels.NetCharge[
-                "#text"
-              ].replace("$", "");
-              result = parseFloat(NetCharge) + parseFloat(NetCharge) * 0.1; // Add 10%
-            }
-          }
-        } else {
-          alert("Something went wrong with R+L Carriers API.");
-        }
+    const odflWSURL = url.resolveScript({
+      scriptId: "customscript_rl_carriers_ws_rl",
+      deploymentId: "customdeploy_rl_carriers_ws_rl"
+    });
+    var res = https.post({
+      url: odflWSURL,
+      body: {
+        locationId: id,
+        customer: customerShipping,
+        weight: weight
+      },
+      headers: { "Content-Type": "application/json" }
+    });
+    if (res.code === 200) {
+      var resObj = JSON.parse(JSON.parse(res.body));
+      if (resObj.success) {
+        result = parseFloat(resObj.data.freightRate).toFixed(2);
       }
-    } catch (error) {
-      console.log(error);
     }
-    return result.toFixed(2);
+
+    return result;
   }
 
   /**
@@ -556,11 +488,40 @@ define([
     if (res.code === 200) {
       var resObj = JSON.parse(JSON.parse(res.body));
       if (resObj.success) {
-        result = parseFloat(resObj.data.freightRate);
+        result = parseFloat(resObj.data.freightRate).toFixed(2);
       }
     }
 
     return result;
+  }
+
+  /**
+   *
+   * @param {*} id
+   * @param {*} customerShipping
+   * @param {*} weight
+   */
+  function getFreightRateUPSPackage(id, customerShipping, weight) {
+    try {
+      const odflWSURL = url.resolveScript({
+        scriptId: "customscript_ups_package_ws_rl",
+        deploymentId: "customdeploy_ups_package_ws_rl"
+      });
+      var res = https.post({
+        url: odflWSURL,
+        body: {
+          locationId: id,
+          customer: customerShipping,
+          weight: weight
+        },
+        headers: { "Content-Type": "application/json" }
+      });
+      if (res.code === 200) {
+        var resObj = JSON.parse(JSON.parse(res.body));
+        return resObj;
+      }
+    } catch (error) {}
+    return false;
   }
 
   /**
@@ -592,10 +553,12 @@ define([
     const totalFreightRate = arrayfreightRateRows.reduce(function(a, b) {
       return a + b;
     }, 0);
-    document.getElementById("tblFreightRate").innerHTML = totalFreightRate;
+    document.getElementById("tblFreightRate").innerHTML = parseFloat(
+      totalFreightRate
+    ).toFixed(2);
     currentRecord.setValue({
       fieldId: "custbodytotal_freight_rate",
-      value: isDone ? totalFreightRate : ""
+      value: isDone ? parseFloat(totalFreightRate).toFixed(2) : ""
     });
 
     saveData(currentRecord);
@@ -668,46 +631,45 @@ define([
   }
 
   /**
-   * XML TO Json
-   * @param {*} xml
+   * Build UPS Package Services
+   * @param {*} data
    */
-  function xmlToJson(xml) {
-    // Create the return object
-    var obj = {};
-
-    if (xml.nodeType == 1) {
-      // element
-      // do attributes
-      if (xml.attributes.length > 0) {
-        obj["@attributes"] = {};
-        for (var j = 0; j < xml.attributes.length; j++) {
-          var attribute = xml.attributes.item(j);
-          obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
-        }
-      }
-    } else if (xml.nodeType == 3) {
-      // text
-      obj = xml.nodeValue;
+  function buildUPSPackageServices(data) {
+    var html = '<div class="ups-package-services">';
+    for (var index = 0; index < data.length; index++) {
+      var el = data[index];
+      html +=
+        '<p><input type="radio" id="upsServices-' +
+        el.code +
+        '" name="upsServices" value="' +
+        el.total +
+        '"> <label for="upsServices-' +
+        el.code +
+        '">' +
+        UPS_SERVICES[el.code] +
+        " ($" +
+        el.total +
+        ")</label></p>";
     }
+    html += "</div>";
+    return html;
+  }
 
-    // do children
-    if (xml.hasChildNodes()) {
-      for (var i = 0; i < xml.childNodes.length; i++) {
-        var item = xml.childNodes.item(i);
-        var nodeName = item.nodeName;
-        if (typeof obj[nodeName] == "undefined") {
-          obj[nodeName] = xmlToJson(item);
-        } else {
-          if (typeof obj[nodeName].push == "undefined") {
-            var old = obj[nodeName];
-            obj[nodeName] = [];
-            obj[nodeName].push(old);
-          }
-          obj[nodeName].push(xmlToJson(item));
-        }
-      }
+  /**
+   * Binding Radio Button UPS
+   */
+  function bindingUPSPackageServices(id, currentRecord) {
+    var UPSPackageServices = document.querySelectorAll(
+      '.ups-package-services input[type="radio"]'
+    );
+    for (var i = 0; i < UPSPackageServices.length; i++) {
+      UPSPackageServices[i].addEventListener("change", function(event) {
+        const total = this.value;
+        updateUI(id, total, currentRecord, function() {
+          MicroModal.close("modal-shipping-method");
+        });
+      });
     }
-    return obj;
   }
 
   /**

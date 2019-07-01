@@ -15,6 +15,7 @@ define(["N/https", "N/search", "N/xml", "/SuiteScripts/Module/Utils"], function(
   const USERNAME = "***REMOVED***";
   const PASSWORD = "***REMOVED***";
   const CUS_ACCOUNT = "***REMOVED***";
+  const ADDITIONAL_FEES = 0; // 0%
 
   /**
    * POST
@@ -43,11 +44,14 @@ define(["N/https", "N/search", "N/xml", "/SuiteScripts/Module/Utils"], function(
           originAddress.countryCode = "CAN";
         }
         // Check State
-        if(originAddress.state.length > 2) {
-          originAddress.state = _U.abbrRegion(originAddress.state, 'abbr');
+        if (originAddress.state.length > 2) {
+          originAddress.state = _U.abbrRegion(originAddress.state, "abbr");
         }
-        if(context.customer.state.length > 2) {
-          context.customer.state = _U.abbrRegion(context.customer.state, 'abbr');
+        if (context.customer.state.length > 2) {
+          context.customer.state = _U.abbrRegion(
+            context.customer.state,
+            "abbr"
+          );
         }
 
         const freightRate = getFreightRate(
@@ -55,7 +59,7 @@ define(["N/https", "N/search", "N/xml", "/SuiteScripts/Module/Utils"], function(
           context.customer,
           context.weight
         );
-        
+
         result.data = {
           freightRate: freightRate
         };
@@ -168,10 +172,14 @@ define(["N/https", "N/search", "N/xml", "/SuiteScripts/Module/Utils"], function(
           text: res.body
         });
         var netFreightCharge = resXML.getElementsByTagName({
-            tagName : 'netFreightCharge'
+          tagName: "netFreightCharge"
         });
-        if(netFreightCharge.length > 0) {
-          return netFreightCharge[0].textContent;  
+        if (netFreightCharge.length > 0) {
+          var nCharge = netFreightCharge[0].textContent;
+          nCharge =
+            parseFloat(nCharge) + parseFloat(nCharge) * (ADDITIONAL_FEES / 100);
+          nCharge = parseFloat(nCharge).toFixed(2);
+          return nCharge;
         }
       }
     } catch (error) {

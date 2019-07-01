@@ -10,7 +10,8 @@ define(["./Module/salesEffective"], function(salesEffective) {
     RL_CARRIERS: "LTL",
     WILL_CALL: "Will Call",
     LEXOR_TRUCK: "Lexor Truck",
-    ODFL: "LTL"
+    ODFL: "LTL",
+    UPS_PACKAGE: "UPS Package"
   };
 
   function beforeLoad(context) {
@@ -130,7 +131,7 @@ define(["./Module/salesEffective"], function(salesEffective) {
               "____SHIPPING_METHOD___",
               SHIPPING_METHODS[row.SHIPPING_METHOD]
             )
-            .replaceAll("____FREIGHT_RATE___", row.FREIGHT_RATE);
+            .replaceAll("____FREIGHT_RATE___", parseFloat(row.FREIGHT_RATE).toFixed(2));
         } else {
           tplRow = tplRow
             .replaceAll("____SHIPPING_METHOD___", "")
