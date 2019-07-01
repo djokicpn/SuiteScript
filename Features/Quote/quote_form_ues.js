@@ -10,7 +10,8 @@ define([], function() {
     RL_CARRIERS: "LTL",
     WILL_CALL: "Will Call",
     LEXOR_TRUCK: "Lexor Truck",
-    ODFL: "LTL"
+    ODFL: "LTL",
+    UPS_PACKAGE: "UPS Package"
   };
 
   function beforeLoad(context) {
@@ -98,18 +99,16 @@ define([], function() {
     var htmlTableTotalWeight =
       '<span class="smallgraytextnolink uir-label"><span class="smallgraytextnolink">Shipping Rates</span></span><table id="tableTotalWeight" class="lx-table"><thead><tr><th>Location</th><th>Total Weight</th><th>Shipping Method</th><th>Freight Rate</th></tr></thead><tbody>';
     var totalWeight = 0;
-    var totalFreightRate = dataObj
-      ? dataObj.reduce(function(a, b) {
-          return (
-            (!isNaN(typeof a === "number" ? a : a.FREIGHT_RATE)
-              ? parseFloat(typeof a === "number" ? a : a.FREIGHT_RATE)
-              : 0) +
-            (!isNaN(typeof b === "number" ? b : b.FREIGHT_RATE)
-              ? parseFloat(typeof b === "number" ? b : b.FREIGHT_RATE)
-              : 0)
-          );
-        }, 0)
-      : 0;
+    var totalFreightRate = dataObj ? dataObj.reduce(function(a, b) {
+      return (
+        (!isNaN(typeof a === "number" ? a : a.FREIGHT_RATE)
+          ? parseFloat(typeof a === "number" ? a : a.FREIGHT_RATE)
+          : 0) +
+        (!isNaN(typeof b === "number" ? b : b.FREIGHT_RATE)
+          ? parseFloat(typeof b === "number" ? b : b.FREIGHT_RATE)
+          : 0)
+      );
+    }, 0) : 0;
     for (var key in tableTotalWeight) {
       var tplRow =
         '<tr><td>____LOCATIN___</td><td style="text-align: center;">____TOTAL_WEIGHT___</td><td>____SHIPPING_METHOD___</td><td style="text-align: center;">____FREIGHT_RATE___</td></tr>';
@@ -129,7 +128,7 @@ define([], function() {
               "____SHIPPING_METHOD___",
               SHIPPING_METHODS[row.SHIPPING_METHOD]
             )
-            .replaceAll("____FREIGHT_RATE___", row.FREIGHT_RATE);
+            .replaceAll("____FREIGHT_RATE___", parseFloat(row.FREIGHT_RATE).toFixed(2));
         } else {
           tplRow = tplRow
             .replaceAll("____SHIPPING_METHOD___", "")
