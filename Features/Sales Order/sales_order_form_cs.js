@@ -341,9 +341,13 @@ define([
                   customerShipping,
                   totalWeight
                 );
-                updateUI(id, freightRate, currentRecord, function() {
-                  MicroModal.close("modal-shipping-method");
-                });
+                if (parseInt(freightRate) != 0) {
+                  updateUI(id, freightRate, currentRecord, function() {
+                    MicroModal.close("modal-shipping-method");
+                  });
+                } else {
+                  updateUI(id, "", currentRecord);
+                }
               }, 400);
             } else {
               showMicroModal(shippingMethod, function(modal) {
@@ -365,11 +369,19 @@ define([
                   totalWeight
                 );
                 if (dataObj) {
-                  const htmlUPSServices = buildUPSPackageServices(dataObj.data);
-                  document.querySelector(
-                    "#modal-shipping-method-content"
-                  ).innerHTML = htmlUPSServices;
-                  bindingUPSPackageServices(id, currentRecord);
+                  if (dataObj.success) {
+                    const htmlUPSServices = buildUPSPackageServices(
+                      dataObj.data
+                    );
+                    document.querySelector(
+                      "#modal-shipping-method-content"
+                    ).innerHTML = htmlUPSServices;
+                    bindingUPSPackageServices(id, currentRecord);
+                  } else {
+                    document.querySelector(
+                      "#modal-shipping-method-content"
+                    ).innerHTML = "<p>" + dataObj.message + "</p>";
+                  }
                 } else {
                   document.querySelector(
                     "#modal-shipping-method-content"

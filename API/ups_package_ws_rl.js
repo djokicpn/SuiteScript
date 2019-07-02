@@ -48,13 +48,22 @@ define(["N/https", "N/search", "/SuiteScripts/Module/Utils"], function(
         }
 
         // Get Data
-        result.data = getFreightRate(
+        var data = getFreightRate(
           originAddress,
           context.customer,
           context.weight
         );
-        result.success = true;
-        result.message = "Success!";
+        if (data) {
+          if (isArray(data)) {
+            result.data = data;
+            result.success = true;
+            result.message = "Success!";
+          } else {
+            result.message = data;
+          }
+        } else {
+          result.message = "Something went wrong with UPS API.";
+        }
       } else {
         result.message = "Something went wrong with your params.";
         result.errors = validation;
@@ -190,10 +199,26 @@ define(["N/https", "N/search", "/SuiteScripts/Module/Utils"], function(
 
         return RatedShipment;
       }
+
+      if (body.hasOwnProperty("Fault")) {
+        var PrimaryError =
+          body.Fault.detail.Errors.ErrorDetail.PrimaryErrorCode.Description;
+
+        return PrimaryError;
+      }
+
       return false;
     } catch (error) {
       return false;
     }
+  }
+
+  /**
+   * is Array
+   * @param {*} value
+   */
+  function isArray(value) {
+    return value && typeof value === "object" && value.constructor === Array;
   }
 
   /**
