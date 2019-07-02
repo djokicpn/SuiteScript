@@ -11,6 +11,9 @@ define([
   "/SuiteScripts/Module/parseTable"
 ], function(https, url, MicroModal, parser) {
   /* === VARS === */
+  //MODEL, MODEL: Lexor, MODEL: PSD
+  const CLASSES_DISCOUNT = ["44", "45", "46"];
+
   const UPS_SERVICES = {
     // domestic
     "03": "UPS Ground",
@@ -71,9 +74,15 @@ define([
       return this.split(search).join(replacement);
     };
 
+    // Default Location
+    const defaultLocation = currentRecord.getValue({
+      fieldId: "location"
+    });
+
     const totalLine = currentRecord.getLineCount({ sublistId: "item" });
     var tableTotalWeight = {};
     var mapLocation = {};
+    var mapDiscount = {};
     var totalWeight = 0;
     document.querySelector("#tableTotalWeight tbody").innerHTML = "";
     for (var index = 0; index < totalLine; index++) {
@@ -97,20 +106,44 @@ define([
         fieldId: "location",
         line: index
       });
+      // class
+      const custcol_item_class = currentRecord.getSublistValue({
+        sublistId: "item",
+        fieldId: "custcol_item_class",
+        line: index
+      });
       if (location === "") {
         if (tableTotalWeight["None"] === undefined) {
           tableTotalWeight["None"] = 0;
+          mapDiscount["None"] = false;
         }
         tableTotalWeight["None"] =
           tableTotalWeight["None"] + quantity * weightinlb;
         mapLocation["None"] = 0;
+
+        // Check Discount
+        if (
+          CLASSES_DISCOUNT.includes(custcol_item_class) &&
+          locationId == defaultLocation
+        ) {
+          mapDiscount["None"] = true;
+        }
       } else {
         if (tableTotalWeight[location] === undefined) {
           tableTotalWeight[location] = 0;
+          mapDiscount[location] = false;
         }
         tableTotalWeight[location] =
           tableTotalWeight[location] + quantity * weightinlb;
         mapLocation[location] = locationId;
+
+        // Check Discount
+        if (
+          CLASSES_DISCOUNT.includes(custcol_item_class) &&
+          locationId == defaultLocation
+        ) {
+          mapDiscount[location] = true;
+        }
       }
       totalWeight += quantity * weightinlb;
     }
@@ -125,7 +158,8 @@ define([
       htmlTableTotalWeight += tplRow
         .replaceAll("____ID___", mapLocation[key])
         .replaceAll("____LOCATIN___", key)
-        .replaceAll("____TOTAL_WEIGHT___", tableTotalWeight[key]);
+        .replaceAll("____TOTAL_WEIGHT___", tableTotalWeight[key])
+        .replaceAll("____DISCOUNT___", mapDiscount[key]);
     }
     document.querySelector(
       "#tableTotalWeight tbody"
@@ -158,25 +192,8 @@ define([
     div.className = "modal micromodal-slide";
     div.id = "modal-shipping-method";
     div.setAttribute("aria-hidden", "true");
-    var modalHTML =
-      '<div class="modal__overlay" tabindex="-1" data-micromodal-close>';
-    modalHTML +=
-      '<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-shipping-method-title">';
-    modalHTML += '<header class="modal__header">';
-    modalHTML += '<h2 class="modal__title" id="modal-shipping-method-title">';
-    modalHTML += "Shipping Method: <span>R+L Carriers</span>";
-    modalHTML += "</h2>";
-    modalHTML +=
-      '<button class="modal__close" aria-label="Close modal" data-micromodal-close></button>';
-    modalHTML += "</header>";
-    modalHTML +=
-      '<main class="modal__content" id="modal-shipping-method-content">';
-    modalHTML += '<div class="lds-ripple"><div></div><div></div></div>';
-    modalHTML += "</main>";
-    modalHTML += "</div>";
-    modalHTML += "</div>";
-
-    div.innerHTML = modalHTML;
+    div.innerHTML =
+      '<div class="modal__overlay" tabindex="-1" data-micromodal-close><div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-shipping-method-title"><header class="modal__header"><h2 class="modal__title" id="modal-shipping-method-title">Shipping Method: <span>LTL</span></h2><button class="modal__close" aria-label="Close modal" data-micromodal-close></button></header><main class="modal__content" id="modal-shipping-method-content"><div class="lds-ripple"><div></div><div></div></div></main></div></div>';
     document.body.appendChild(div);
   }
 
@@ -430,6 +447,23 @@ define([
    * Update UI
    */
   function updateUI(id, freightRate, currentRecord, done) {
+    // Freight Rate Column
+    updateFreightRate(id, freightRate, currentRecord);
+    // Update Discount
+    updateDiscount(id, freightRate, currentRecord);
+    // Save data to JSON
+    saveData(currentRecord);
+
+    if (done) {
+      done();
+    }
+  }
+
+  /**
+   * Update Freight Rate
+   * @param {*} currentRecord
+   */
+  function updateFreightRate(id, freightRate, currentRecord) {
     document.getElementById("freightRate-" + id).innerHTML = freightRate;
     document
       .getElementById("freightRate-" + id)
@@ -462,11 +496,54 @@ define([
       fieldId: "custbodytotal_freight_rate",
       value: isDone ? parseFloat(totalFreightRate).toFixed(2) : ""
     });
+  }
 
-    saveData(currentRecord);
+  /**
+   * Update Discount
+   * @param {*} id
+   * @param {*} freightRate
+   * @param {*} currentRecord
+   */
+  function updateDiscount(id, freightRate, currentRecord) {
+    const discountEl = document.getElementById("shippingDiscount-" + id);
+    const isDiscount = discountEl.getAttribute("data-discount");
+    if (isDiscount == "true") {
+      document.getElementById("shippingDiscount-" + id).innerHTML = freightRate;
+      document
+        .getElementById("shippingDiscount-" + id)
+        .setAttribute("data-shipping-discount", freightRate);
 
-    if (done) {
-      done();
+      // Update Total
+      const shippingDiscountRows = document.querySelectorAll(
+        "#tableTotalWeight .shippingDiscount"
+      );
+      var isDone = true;
+      const arrayshippingDiscountRows = Array.prototype.map.call(
+        shippingDiscountRows,
+        function(n) {
+          var shippingDiscount = parseFloat(
+            n.getAttribute("data-shipping-discount").trim()
+          );
+          if (isNaN(shippingDiscount)) {
+            isDone = false;
+          }
+          return !isNaN(shippingDiscount) ? shippingDiscount : 0;
+        }
+      );
+      const totalShippingDiscount = arrayshippingDiscountRows.reduce(function(
+        a,
+        b
+      ) {
+        return a + b;
+      },
+      0);
+      document.getElementById("tblShippingDiscount").innerHTML = parseFloat(
+        totalShippingDiscount
+      ).toFixed(2);
+      currentRecord.setValue({
+        fieldId: "custbody_shipping_discount",
+        value: isDone ? parseFloat(totalShippingDiscount).toFixed(2) : ""
+      });
     }
   }
 

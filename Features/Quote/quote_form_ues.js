@@ -97,21 +97,35 @@ define([], function() {
     var dataObj = getTableWeightDataJSON(newRecord);
 
     var htmlTableTotalWeight =
-      '<span class="smallgraytextnolink uir-label"><span class="smallgraytextnolink">Shipping Rates</span></span><table id="tableTotalWeight" class="lx-table"><thead><tr><th>Location</th><th>Total Weight</th><th>Shipping Method</th><th>Freight Rate</th></tr></thead><tbody>';
+      '<span class="smallgraytextnolink uir-label"><span class="smallgraytextnolink">Shipping Rates</span></span><table id="tableTotalWeight" class="lx-table"><thead><tr><th>Location</th><th>Total Weight</th><th>Shipping Method</th><th>Freight Rate</th><th>Discount</th></tr></thead><tbody>';
     var totalWeight = 0;
-    var totalFreightRate = dataObj ? dataObj.reduce(function(a, b) {
-      return (
-        (!isNaN(typeof a === "number" ? a : a.FREIGHT_RATE)
-          ? parseFloat(typeof a === "number" ? a : a.FREIGHT_RATE)
-          : 0) +
-        (!isNaN(typeof b === "number" ? b : b.FREIGHT_RATE)
-          ? parseFloat(typeof b === "number" ? b : b.FREIGHT_RATE)
-          : 0)
-      );
-    }, 0) : 0;
+    var totalFreightRate = dataObj
+      ? dataObj.reduce(function(a, b) {
+          return (
+            (!isNaN(typeof a === "number" ? a : a.FREIGHT_RATE)
+              ? parseFloat(typeof a === "number" ? a : a.FREIGHT_RATE)
+              : 0) +
+            (!isNaN(typeof b === "number" ? b : b.FREIGHT_RATE)
+              ? parseFloat(typeof b === "number" ? b : b.FREIGHT_RATE)
+              : 0)
+          );
+        }, 0)
+      : 0;
+    var totalDiscount = dataObj
+      ? dataObj.reduce(function(a, b) {
+          return (
+            (!isNaN(typeof a === "number" ? a : a.DISCOUNT)
+              ? parseFloat(typeof a === "number" ? a : a.DISCOUNT)
+              : 0) +
+            (!isNaN(typeof b === "number" ? b : b.DISCOUNT)
+              ? parseFloat(typeof b === "number" ? b : b.DISCOUNT)
+              : 0)
+          );
+        }, 0)
+      : 0;
     for (var key in tableTotalWeight) {
       var tplRow =
-        '<tr><td>____LOCATIN___</td><td style="text-align: center;">____TOTAL_WEIGHT___</td><td>____SHIPPING_METHOD___</td><td style="text-align: center;">____FREIGHT_RATE___</td></tr>';
+        '<tr><td>____LOCATIN___</td><td style="text-align: center;">____TOTAL_WEIGHT___</td><td>____SHIPPING_METHOD___</td><td style="text-align: center;">____FREIGHT_RATE___</td><td style="text-align: center;">____SHIPPING_DISCOUNT___</td></tr>';
       tplRow = tplRow
         .replaceAll("____LOCATIN___", key)
         .replaceAll("____TOTAL_WEIGHT___", tableTotalWeight[key]);
@@ -128,16 +142,25 @@ define([], function() {
               "____SHIPPING_METHOD___",
               SHIPPING_METHODS[row.SHIPPING_METHOD]
             )
-            .replaceAll("____FREIGHT_RATE___", parseFloat(row.FREIGHT_RATE).toFixed(2));
+            .replaceAll(
+              "____FREIGHT_RATE___",
+              isNaN(row.FREIGHT_RATE) ? 0 : parseFloat(row.FREIGHT_RATE).toFixed(2)
+            )
+            .replaceAll(
+              "____SHIPPING_DISCOUNT___",
+              isNaN(row.DISCOUNT) ? 0 : parseFloat(row.DISCOUNT).toFixed(2)
+            );
         } else {
           tplRow = tplRow
             .replaceAll("____SHIPPING_METHOD___", "")
-            .replaceAll("____FREIGHT_RATE___", "");
+            .replaceAll("____FREIGHT_RATE___", "")
+            .replaceAll("____SHIPPING_DISCOUNT___", "");
         }
       } else {
         tplRow = tplRow
           .replaceAll("____SHIPPING_METHOD___", "")
-          .replaceAll("____FREIGHT_RATE___", "");
+          .replaceAll("____FREIGHT_RATE___", "")
+          .replaceAll("____SHIPPING_DISCOUNT___", "");
       }
 
       htmlTableTotalWeight += tplRow;
@@ -148,6 +171,8 @@ define([], function() {
       totalWeight +
       '</td><td></td><td style="text-align: center;">' +
       totalFreightRate +
+      '</td><td style="text-align: center;">' +
+      totalDiscount +
       "</td></tr></tfoot></table>";
     htmlTableTotalWeight +=
       "<style>.lx-table{border:solid 1px #dee;border-collapse:collapse;border-spacing:0;font-size:12px}.lx-table thead th{background-color:#607799;border:solid 1px #dee;color:#fff;padding:10px;text-align:left}.lx-table tbody td{border:solid 1px #dee;color:#000;padding:10px}.lx-table tfoot td{border:solid 1px #dee;color:#000;padding:10px}</style>";

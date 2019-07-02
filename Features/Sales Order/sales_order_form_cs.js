@@ -8,6 +8,7 @@
  */
 define(["/SuiteScripts/Module/shippingRates"], function(_ShippingRates) {
   /* === VARS === */
+  
 
   /* === EVENTS FUNCTIONS === */
 
@@ -64,11 +65,6 @@ define(["/SuiteScripts/Module/shippingRates"], function(_ShippingRates) {
           sublistId: sublistId,
           fieldId: "custcol_total_weight",
           value: quantity * itemWeight
-        });
-        // class
-        const custcol_item_class = currentRecord.getCurrentSublistValue({
-          sublistId: sublistId,
-          fieldId: "custcol_item_class"
         });
       }
     } catch (error) {
