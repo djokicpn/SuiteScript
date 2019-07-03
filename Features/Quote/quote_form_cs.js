@@ -87,6 +87,9 @@ define(["/SuiteScripts/Module/shippingRates"], function(_ShippingRates) {
     ) {
       removeOptionsShipAndBill();
     }
+    
+    _ShippingRates.fieldChanged(context);
+
     return;
   }
 

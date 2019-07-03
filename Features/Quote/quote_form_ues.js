@@ -5,7 +5,7 @@
  * @NScriptType UserEventScript
  * @author trungpv <trung@lexor.com>
  */
-define([], function() {
+define(["N/runtime"], function(runtime) {
   const SHIPPING_METHODS = {
     RL_CARRIERS: "LTL",
     WILL_CALL: "Will Call",
@@ -33,6 +33,8 @@ define([], function() {
         locationCol.defaultValue = location;
       }
     }
+
+    shippingDiscountByTheManager(context);
 
     // View Mode
     if (context.type === context.UserEventType.VIEW) {
@@ -244,6 +246,38 @@ define([], function() {
     }
 
     return { tableTotalWeight: tableTotalWeight, mapLocation: mapLocation };
+  }
+
+  /**
+   * Active feature Shipping Discount By The Manager
+   * @param {*} context
+   */
+  function shippingDiscountByTheManager(context) {
+    try {
+      var form = context.form;
+      var newRecord = context.newRecord;
+      var currentUser = runtime.getCurrentUser();
+      const role = currentUser.role;
+
+      var custbodyshipping_discount_by_manager = form.getField({
+        id: "custbodyshipping_discount_by_manager"
+      });
+      if (custbodyshipping_discount_by_manager) {
+        // 3 Administrator
+        // 1069	Lexor | Sales Director
+        // 1037	Lexor | Sales Manager
+        if (role === 3 || role === 1069 || role === 1037) {
+          custbodyshipping_discount_by_manager.updateDisplayType({ displayType: "NORMAL" });
+        } else {
+          custbodyshipping_discount_by_manager.updateDisplayType({ displayType: "disabled" });
+        }
+      }
+    } catch (error) {
+      log.error({
+        title: "Error shippingDiscountByTheManager",
+        details: error.message
+      });
+    }
   }
 
   return {
