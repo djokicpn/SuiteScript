@@ -14,8 +14,13 @@ define(["N/runtime"], function(runtime) {
    * @param {*} context
    */
   function pageInit(context) {
+    const currentRecord = context.currentRecord;
     // processDateDeposited(context);
-    disabledFeatureRoles(context);
+    // disabledFeatureByRoles(context);
+    currentRecord.setValue({
+      fieldId: 'payment',
+      value: ''
+    });
     return;
   }
 
@@ -24,6 +29,7 @@ define(["N/runtime"], function(runtime) {
    * @param {*} context
    */
   function fieldChanged(context) {
+    // const currentRecord = context.currentRecord;
     // const fieldId = context.fieldId;
     // if (fieldId === "undepfunds" || fieldId === "account") {
     //   processDateDeposited(context);
@@ -59,7 +65,7 @@ define(["N/runtime"], function(runtime) {
   /**
    * Disable Fields with some Roles
    */
-  function disabledFeatureRoles(context) {
+  function disabledFeatureByRoles(context) {
     var account = document.querySelector('input[name="undepfunds"][value="F"]');
     if (account) {
       var currentUser = runtime.getCurrentUser();

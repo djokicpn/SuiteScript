@@ -5,7 +5,10 @@
  * @NScriptType UserEventScript
  * @author trungpv <trung@lexor.com>
  */
-define(["./Module/salesEffective"], function(salesEffective) {
+define(["N/runtime", "./Module/salesEffective"], function(
+  runtime,
+  salesEffective
+) {
   const SHIPPING_METHODS = {
     RL_CARRIERS: "LTL",
     WILL_CALL: "Will Call",
@@ -33,6 +36,8 @@ define(["./Module/salesEffective"], function(salesEffective) {
         locationCol.defaultValue = location;
       }
     }
+
+    shippingDiscountByTheManager(context);
 
     // View Mode
     if (context.type === context.UserEventType.VIEW) {
@@ -147,7 +152,9 @@ define(["./Module/salesEffective"], function(salesEffective) {
             )
             .replaceAll(
               "____FREIGHT_RATE___",
-              isNaN(row.FREIGHT_RATE) ? 0 : parseFloat(row.FREIGHT_RATE).toFixed(2)
+              isNaN(row.FREIGHT_RATE)
+                ? 0
+                : parseFloat(row.FREIGHT_RATE).toFixed(2)
             )
             .replaceAll(
               "____SHIPPING_DISCOUNT___",
@@ -247,6 +254,38 @@ define(["./Module/salesEffective"], function(salesEffective) {
     }
 
     return { tableTotalWeight: tableTotalWeight, mapLocation: mapLocation };
+  }
+
+  /**
+   * Active feature Shipping Discount By The Manager
+   * @param {*} context
+   */
+  function shippingDiscountByTheManager(context) {
+    try {
+      var form = context.form;
+      var newRecord = context.newRecord;
+      var currentUser = runtime.getCurrentUser();
+      const role = currentUser.role;
+
+      var custbodyshipping_discount_by_manager = form.getField({
+        id: "custbodyshipping_discount_by_manager"
+      });
+      if (custbodyshipping_discount_by_manager) {
+        // 3 Administrator
+        // 1069	Lexor | Sales Director
+        // 1037	Lexor | Sales Manager
+        if (role === 3 || role === 1069 || role === 1037) {
+          custbodyshipping_discount_by_manager.updateDisplayType({ displayType: "NORMAL" });
+        } else {
+          custbodyshipping_discount_by_manager.updateDisplayType({ displayType: "disabled" });
+        }
+      }
+    } catch (error) {
+      log.error({
+        title: "Error shippingDiscountByTheManager",
+        details: error.message
+      });
+    }
   }
 
   return {

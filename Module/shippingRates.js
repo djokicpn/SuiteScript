@@ -5,14 +5,19 @@
  * @author trungpv <trung@lexor.com>
  */
 define([
+  "N/runtime",
   "N/https",
   "N/url",
   "/SuiteScripts/lib/micromodal.min",
   "/SuiteScripts/Module/parseTable"
-], function(https, url, MicroModal, parser) {
+], function(runtime, https, url, MicroModal, parser) {
   /* === VARS === */
   //MODEL, MODEL: Lexor, MODEL: PSD
   const CLASSES_DISCOUNT = ["44", "45", "46"];
+
+  //Shipping Discount By Manager
+  const SD_BY_SALES_MANAGER = 20; //%
+  const SD_BY_SALES_DIRECTOR = 100; //%
 
   const UPS_SERVICES = {
     // domestic
@@ -60,9 +65,137 @@ define([
       fieldId: "custbodytotal_freight_rate",
       value: ""
     });
+    document.getElementById("tblShippingDiscount").innerHTML = 0;
+    currentRecord.setValue({
+      fieldId: "custbody_shipping_discount",
+      value: 0
+    });
+    currentRecord.setValue({
+      fieldId: "custbodyshipping_discount_by_manager",
+      value: 0
+    });
+    saveData(currentRecord);
+  }
+
+  /**
+   * fieldChanged Event
+   * @param {*} context
+   */
+  function fieldChanged(context) {
+    const fieldId = context.fieldId;
+    const sublistId = context.sublistId;
+    const currentRecord = context.currentRecord;
+    // Min Max custbodyshipping_discount_by_manager
+    if (
+      sublistId === null &&
+      fieldId === "custbodyshipping_discount_by_manager"
+    ) {
+      try {
+        var discount = 0;
+        var discountByManagerValue = currentRecord.getValue({
+          fieldId: "custbodyshipping_discount_by_manager"
+        });
+        var dataObj = getTableWeightDataJSON(currentRecord);
+        if (dataObj) {
+          var totalFreightRate = dataObj
+            ? dataObj.reduce(function(a, b) {
+                return (
+                  (!isNaN(typeof a === "number" ? a : a.FREIGHT_RATE)
+                    ? parseFloat(typeof a === "number" ? a : a.FREIGHT_RATE)
+                    : 0) +
+                  (!isNaN(typeof b === "number" ? b : b.FREIGHT_RATE)
+                    ? parseFloat(typeof b === "number" ? b : b.FREIGHT_RATE)
+                    : 0)
+                );
+              }, 0)
+            : 0;
+          totalFreightRate = isNaN(totalFreightRate) ? 0 : totalFreightRate;
+          var totalDiscount = dataObj
+            ? dataObj.reduce(function(a, b) {
+                return (
+                  (!isNaN(typeof a === "number" ? a : a.DISCOUNT)
+                    ? parseFloat(typeof a === "number" ? a : a.DISCOUNT)
+                    : 0) +
+                  (!isNaN(typeof b === "number" ? b : b.DISCOUNT)
+                    ? parseFloat(typeof b === "number" ? b : b.DISCOUNT)
+                    : 0)
+                );
+              }, 0)
+            : 0;
+          totalDiscount = isNaN(totalDiscount) ? 0 : totalDiscount;
+
+          var currentUser = runtime.getCurrentUser();
+          const role = currentUser.role;
+          // 3 Administrator
+          // 1069	Lexor | Sales Director
+          // 1037	Lexor | Sales Manager
+          if (role === 1037) {
+            var min = 0;
+            var max =
+              (parseFloat(totalFreightRate) - parseFloat(totalDiscount)) *
+              (SD_BY_SALES_MANAGER / 100);
+            if (max >= 0) {
+              discount = parseFloat(
+                Math.min(max, Math.max(min, discountByManagerValue))
+              ).toFixed(2);
+              if (
+                !isNaN(discountByManagerValue) &&
+                (parseFloat(discountByManagerValue) < min ||
+                  parseFloat(discountByManagerValue) > max)
+              ) {
+                alert("Value must be less than or equal to " + parseFloat(max).toFixed(2) + ".");
+              }
+            }
+          } else if (role === 3 || role === 1069) {
+            var min = 0;
+            var max =
+              (parseFloat(totalFreightRate) - parseFloat(totalDiscount)) *
+              (SD_BY_SALES_DIRECTOR / 100);
+            if (max >= 0) {
+              discount = parseFloat(
+                Math.min(max, Math.max(min, discountByManagerValue))
+              ).toFixed(2);
+              if (
+                !isNaN(discountByManagerValue) &&
+                (parseFloat(discountByManagerValue) < min ||
+                  parseFloat(discountByManagerValue) > max)
+              ) {
+                alert("Value must be less than or equal to " + parseFloat(max).toFixed(2) + ".");
+              }
+            }
+          }
+        }
+        currentRecord.setValue({
+          fieldId: "custbodyshipping_discount_by_manager",
+          value: discount,
+          ignoreFieldChange: true
+        });
+      } catch (error) {
+        currentRecord.setValue({
+          fieldId: "custbodyshipping_discount_by_manager",
+          value: 0,
+          ignoreFieldChange: true
+        });
+      }
+    }
   }
 
   /** HELPPER FUNCTIONS **/
+
+  /**
+   * Get data JSON
+   * @param {*} currentRecord
+   */
+  function getTableWeightDataJSON(currentRecord) {
+    const dataJSON = currentRecord.getValue({
+      fieldId: "custbody_table_total_weight_data"
+    });
+    var dataObj = false;
+    try {
+      dataObj = JSON.parse(dataJSON);
+    } catch (error) {}
+    return dataObj;
+  }
 
   /**
    * Build HTML Table Total Weight
@@ -451,6 +584,11 @@ define([
     updateFreightRate(id, freightRate, currentRecord);
     // Update Discount
     updateDiscount(id, freightRate, currentRecord);
+    //custbodyshipping_discount_by_manager
+    currentRecord.setValue({
+      fieldId: "custbodyshipping_discount_by_manager",
+      value: 0
+    });
     // Save data to JSON
     saveData(currentRecord);
 
@@ -656,6 +794,7 @@ define([
    */
   return {
     pageInit: pageInit,
-    sublistChanged: sublistChanged
+    sublistChanged: sublistChanged,
+    fieldChanged: fieldChanged
   };
 });
