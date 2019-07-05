@@ -6,9 +6,11 @@
  * @NScriptType ClientScript
  * @author trungpv <trung@lexor.com>
  */
-define(["/SuiteScripts/Module/shippingRates"], function(_ShippingRates) {
+define([
+  "/SuiteScripts/Module/shippingRates",
+  "/SuiteScripts/Module/discountModule"
+], function(_ShippingRates, _discountModule) {
   /* === VARS === */
-  
 
   /* === EVENTS FUNCTIONS === */
 
@@ -21,6 +23,7 @@ define(["/SuiteScripts/Module/shippingRates"], function(_ShippingRates) {
     try {
       removeOptionsShipAndBill();
       _ShippingRates.pageInit(currentRecord);
+      _discountModule.pageInit(context);
     } catch (error) {
       console.log("pageInit Error: ", error);
     }
@@ -41,6 +44,8 @@ define(["/SuiteScripts/Module/shippingRates"], function(_ShippingRates) {
         console.log("sublistChanged Error: ", error);
       }
     }
+    _discountModule.sublistChanged(context);
+
     return;
   }
 
@@ -87,8 +92,9 @@ define(["/SuiteScripts/Module/shippingRates"], function(_ShippingRates) {
     ) {
       removeOptionsShipAndBill();
     }
-    
+
     _ShippingRates.fieldChanged(context);
+    _discountModule.fieldChanged(context);
 
     return;
   }
