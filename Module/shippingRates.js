@@ -144,7 +144,11 @@ define([
                 (parseFloat(discountByManagerValue) < min ||
                   parseFloat(discountByManagerValue) > max)
               ) {
-                alert("Value must be less than or equal to " + parseFloat(max).toFixed(2) + ".");
+                alert(
+                  "Value must be less than or equal to " +
+                    parseFloat(max).toFixed(2) +
+                    "."
+                );
               }
             }
           } else if (role === 3 || role === 1069) {
@@ -161,7 +165,11 @@ define([
                 (parseFloat(discountByManagerValue) < min ||
                   parseFloat(discountByManagerValue) > max)
               ) {
-                alert("Value must be less than or equal to " + parseFloat(max).toFixed(2) + ".");
+                alert(
+                  "Value must be less than or equal to " +
+                    parseFloat(max).toFixed(2) +
+                    "."
+                );
               }
             }
           }
@@ -178,6 +186,8 @@ define([
           ignoreFieldChange: true
         });
       }
+      // Update Shipping Cost
+      updateShippingCost(currentRecord);
     }
   }
 
@@ -590,12 +600,43 @@ define([
       fieldId: "custbodyshipping_discount_by_manager",
       value: 0
     });
+
+    updateShippingCost(currentRecord);
+
     // Save data to JSON
     saveData(currentRecord);
 
     if (done) {
       done();
     }
+  }
+
+  /**
+   * Update shipping cost
+   * Set check shipping cost = total freight rate - shipping discount - shipping discount by manager (sale Order and Quote )
+   * @param {*} currentRecord
+   */
+  function updateShippingCost(currentRecord) {
+    // custbodytotal_freight_rate
+    var freightRate = currentRecord.getValue({
+      fieldId: "custbodytotal_freight_rate"
+    });
+    // custbody_shipping_discount
+    var shippingDiscount = currentRecord.getValue({
+      fieldId: "custbody_shipping_discount"
+    });
+    // custbodyshipping_discount_by_manager
+    var discountByManagerValue = currentRecord.getValue({
+      fieldId: "custbodyshipping_discount_by_manager"
+    });
+
+    // shippingcost
+    currentRecord.setValue({
+      fieldId: "shippingcost",
+      value: parseFloat(
+        freightRate - shippingDiscount - discountByManagerValue
+      ).toFixed(2)
+    });
   }
 
   /**
@@ -722,9 +763,7 @@ define([
           element.SHIPPING_METHOD;
         updateUI(element.LOCATION, element.FREIGHT_RATE, currentRecord, false);
       }
-    } catch (error) {
-      
-    }
+    } catch (error) {}
   }
 
   /**
@@ -795,9 +834,10 @@ define([
    */
   function removeButtonCalc() {
     try {
-      document.querySelector('#shippingcost_fs a[aria-label="Calculate"]').setAttribute("style", "display:none !important"); 
-    } catch (error) {
-    }
+      document
+        .querySelector('#shippingcost_fs a[aria-label="Calculate"]')
+        .setAttribute("style", "display:none !important");
+    } catch (error) {}
   }
 
   /**
