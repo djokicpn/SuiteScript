@@ -36,6 +36,7 @@ define([
    * @param {*} currentRecord
    */
   function pageInit(currentRecord) {
+    removeButtonCalc();
     buildTableTotalWeight(currentRecord, function() {
       loadData(currentRecord);
       bindingSelectShippingMethodEvents(currentRecord);
@@ -722,7 +723,7 @@ define([
         updateUI(element.LOCATION, element.FREIGHT_RATE, currentRecord, false);
       }
     } catch (error) {
-      console.log("Nothing to load :)");
+      
     }
   }
 
@@ -786,6 +787,16 @@ define([
           MicroModal.close("modal-shipping-method");
         });
       });
+    }
+  }
+
+  /**
+   * Remove Button Calc
+   */
+  function removeButtonCalc() {
+    try {
+      document.querySelector('#shippingcost_fs a[aria-label="Calculate"]').setAttribute("style", "display:none !important"); 
+    } catch (error) {
     }
   }
 
