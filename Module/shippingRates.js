@@ -16,7 +16,7 @@ define([
   const CLASSES_DISCOUNT = ["44", "45", "46"];
 
   //Shipping Discount By Manager
-  const SD_BY_SALES_MANAGER = 20; //%
+  const SD_BY_SALES_MANAGER = 100; //%
   const SD_BY_SALES_DIRECTOR = 100; //%
 
   const UPS_SERVICES = {
