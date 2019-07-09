@@ -16,7 +16,7 @@ define(["N/runtime"], function(runtime) {
   function pageInit(context) {
     const currentRecord = context.currentRecord;
     // processDateDeposited(context);
-    // disabledFeatureByRoles(context);
+    disabledFeatureByRoles(context);
     currentRecord.setValue({
       fieldId: 'payment',
       value: ''

@@ -65,7 +65,7 @@ define(["N/record", "N/search"], function(record, search) {
           });
           so.setValue({
             fieldId: "saleseffectivedate",
-            value: salesEffectiveDate ? salesEffectiveDate : createdDate
+            value: salesEffectiveDate ? salesEffectiveDate : ''
           });
           so.save();
         }
