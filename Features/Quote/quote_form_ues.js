@@ -15,45 +15,60 @@ define(["N/runtime"], function(runtime) {
   };
 
   function beforeLoad(context) {
-    var form = context.form;
-    var newRecord = context.newRecord;
-    var item = form.getSublist({ id: "item" });
-    if (item) {
-      var amountCol = item.getField({ id: "amount" });
-      if (amountCol) {
-        amountCol.updateDisplayType({ displayType: "disabled" });
+    try {
+      var form = context.form;
+      var newRecord = context.newRecord;
+      var item = form.getSublist({ id: "item" });
+      if (item) {
+        var amountCol = item.getField({ id: "amount" });
+        if (amountCol) {
+          amountCol.updateDisplayType({ displayType: "disabled" });
+        }
+
+        // Set Default Location
+        var locationCol = item.getField({ id: "location" });
+        if (locationCol) {
+          var location = newRecord.getValue({
+            fieldId: "location"
+          });
+          locationCol.defaultValue = location;
+        }
       }
 
-      // Set Default Location
-      var locationCol = item.getField({ id: "location" });
-      if (locationCol) {
-        var location = newRecord.getValue({
-          fieldId: "location"
-        });
-        locationCol.defaultValue = location;
-      }
-    }
+      shippingDiscountByTheManager(context);
 
-    shippingDiscountByTheManager(context);
-
-    // View Mode
-    if (context.type === context.UserEventType.VIEW) {
-      try {
-        var obj = getTotalWeightByLocation(newRecord);
-        buildTableTotalWeight(newRecord, obj);
-      } catch (err) {
-        log.error({
-          title: "Error buildTableTotalWeight",
-          details: err.message
-        });
+      // View Mode
+      if (context.type === context.UserEventType.VIEW) {
+        try {
+          var obj = getTotalWeightByLocation(newRecord);
+          buildTableTotalWeight(newRecord, obj);
+        } catch (err) {
+          log.error({
+            title: "Error buildTableTotalWeight",
+            details: err.message
+          });
+        }
       }
+    } catch (error) {
+      log.error({
+        title: "Error beforeLoad",
+        details: error.message
+      });
     }
   }
 
   function beforeSubmit(context) {
     var newRecord = context.newRecord;
     try {
+      var custbodyMarginLeft = newRecord.getValue({
+        fieldId: "custbody_margin_left"
+      });
       const totalLine = newRecord.getLineCount({ sublistId: "item" });
+      const countItemsMarginBalance = getCountItemsMargenBalance(newRecord);
+      const avgMarginLeft =
+        countItemsMarginBalance > 0
+          ? parseFloat(custbodyMarginLeft / countItemsMarginBalance).toFixed(2)
+          : 0;
       for (var index = 0; index < totalLine; index++) {
         var quantity = newRecord.getSublistValue({
           sublistId: "item",
@@ -71,6 +86,13 @@ define(["N/runtime"], function(runtime) {
           fieldId: "custcol_total_weight",
           line: index,
           value: quantity * weightinlb
+        });
+        // AVG Margin Balance
+        newRecord.setSublistValue({
+          sublistId: "item",
+          fieldId: "custcol_margin_balance",
+          line: index,
+          value: avgMarginLeft
         });
       }
     } catch (error) {
@@ -146,7 +168,9 @@ define(["N/runtime"], function(runtime) {
             )
             .replaceAll(
               "____FREIGHT_RATE___",
-              isNaN(row.FREIGHT_RATE) ? 0 : parseFloat(row.FREIGHT_RATE).toFixed(2)
+              isNaN(row.FREIGHT_RATE)
+                ? 0
+                : parseFloat(row.FREIGHT_RATE).toFixed(2)
             )
             .replaceAll(
               "____SHIPPING_DISCOUNT___",
@@ -267,9 +291,13 @@ define(["N/runtime"], function(runtime) {
         // 1069	Lexor | Sales Director
         // 1037	Lexor | Sales Manager
         if (role === 3 || role === 1069 || role === 1037) {
-          custbodyshipping_discount_by_manager.updateDisplayType({ displayType: "NORMAL" });
+          custbodyshipping_discount_by_manager.updateDisplayType({
+            displayType: "NORMAL"
+          });
         } else {
-          custbodyshipping_discount_by_manager.updateDisplayType({ displayType: "disabled" });
+          custbodyshipping_discount_by_manager.updateDisplayType({
+            displayType: "disabled"
+          });
         }
       }
     } catch (error) {
@@ -278,6 +306,35 @@ define(["N/runtime"], function(runtime) {
         details: error.message
       });
     }
+  }
+
+  /**
+   *
+   */
+  function getCountItemsMargenBalance(newRecord) {
+    var result = 0;
+    try {
+      const totalLine = newRecord.getLineCount({ sublistId: "item" });
+      for (var index = 0; index < totalLine; index++) {
+        var weightinlb = newRecord.getSublistValue({
+          sublistId: "item",
+          fieldId: "custcol45", // weightinlb
+          line: index
+        });
+        // class
+        var custcol_item_class = newRecord.getSublistValue({
+          sublistId: "item",
+          fieldId: "custcol_item_class",
+          line: index
+		});
+		if(weightinlb !== '' && custcol_item_class !== ''){
+			result++;
+		}
+      }
+    } catch (error) {
+      return 0;
+    }
+    return result;
   }
 
   return {
