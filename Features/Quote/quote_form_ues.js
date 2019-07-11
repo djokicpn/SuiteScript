@@ -326,10 +326,10 @@ define(["N/runtime"], function(runtime) {
           sublistId: "item",
           fieldId: "custcol_item_class",
           line: index
-		});
-		if(weightinlb !== '' && custcol_item_class !== ''){
-			result++;
-		}
+        });
+        if(weightinlb !== ''){
+          result++;
+        }
       }
     } catch (error) {
       return 0;

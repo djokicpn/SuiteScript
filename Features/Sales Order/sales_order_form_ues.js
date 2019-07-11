@@ -333,7 +333,8 @@ define(["N/runtime", "./Module/salesEffective"], function(
           fieldId: "custcol_item_class",
           line: index
 		});
-		if(weightinlb !== '' && custcol_item_class !== ''){
+		// if(weightinlb !== '' && custcol_item_class !== ''){
+		if(weightinlb !== ''){
 			result++;
 		}
       }
