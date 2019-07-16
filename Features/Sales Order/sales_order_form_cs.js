@@ -13,6 +13,53 @@ define([
   /* === VARS === */
 
   /* === EVENTS FUNCTIONS === */
+  /**
+   * Line Init
+   * @param {*} context
+   */
+  function lineInit(context) {
+    try {
+      const sublistId = context.sublistId;
+      const currentRecord = context.currentRecord;
+      if (sublistId === "item") {
+        const index = currentRecord.getCurrentSublistIndex({
+          sublistId: "item"
+        });
+        try {
+          var itempicked = currentRecord.getSublistValue({
+            sublistId: "item",
+            fieldId: "itempicked",
+            line: index
+          });
+          var itempacked = currentRecord.getSublistValue({
+            sublistId: "item",
+            fieldId: "itempacked",
+            line: index
+          });
+          var islinefulfilled = currentRecord.getSublistValue({
+            sublistId: "item",
+            fieldId: "islinefulfilled",
+            line: index
+          });
+          if (
+            itempicked === "T" ||
+            itempacked === "T" ||
+            islinefulfilled === "T"
+          ) {
+            disableCell("quantity", index, currentRecord);
+            disableCell("item", index, currentRecord);
+            disableCell("taxcode", index, currentRecord);
+            disableCell("location", index, currentRecord);
+            disableCell("commitinventory", index, currentRecord);
+            disableCell("units", index, currentRecord);
+          }
+        } catch (error) {}
+      }
+    } catch (error) {
+      console.log("lineInit Error: ", error);
+    }
+    return;
+  }
 
   /**
    * Page Init
@@ -143,6 +190,23 @@ define([
   }
 
   /**
+   * Disable Cell
+   * @param {*} col
+   * @param {*} row
+   * @param {*} currentRecord
+   */
+  function disableCell(col, row, currentRecord) {
+    var field = currentRecord.getSublistField({
+      sublistId: "item",
+      fieldId: col,
+      line: row
+    });
+    if (field) {
+      field.isDisabled = true;
+    }
+  }
+
+  /**
    * Export Events
    */
   var exports = {};
@@ -150,5 +214,6 @@ define([
   exports.sublistChanged = sublistChanged;
   exports.validateLine = validateLine;
   exports.fieldChanged = fieldChanged;
+  exports.lineInit = lineInit;
   return exports;
 });

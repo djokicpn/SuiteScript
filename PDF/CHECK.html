@@ -1,0 +1,137 @@
+<?xml version="1.0"?><!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">
+<pdf>
+<head>
+	<link name="NotoSans" type="font" subtype="truetype" src="${nsfont.NotoSans_Regular}" src-bold="${nsfont.NotoSans_Bold}" src-italic="${nsfont.NotoSans_Italic}" src-bolditalic="${nsfont.NotoSans_BoldItalic}" bytes="2" />
+	<#if .locale == "zh_CN">
+		<link name="NotoSansCJKsc" type="font" subtype="opentype" src="${nsfont.NotoSansCJKsc_Regular}" src-bold="${nsfont.NotoSansCJKsc_Bold}" bytes="2" />
+	<#elseif .locale == "zh_TW">
+		<link name="NotoSansCJKtc" type="font" subtype="opentype" src="${nsfont.NotoSansCJKtc_Regular}" src-bold="${nsfont.NotoSansCJKtc_Bold}" bytes="2" />
+	<#elseif .locale == "ja_JP">
+		<link name="NotoSansCJKjp" type="font" subtype="opentype" src="${nsfont.NotoSansCJKjp_Regular}" src-bold="${nsfont.NotoSansCJKjp_Bold}" bytes="2" />
+	<#elseif .locale == "ko_KR">
+		<link name="NotoSansCJKkr" type="font" subtype="opentype" src="${nsfont.NotoSansCJKkr_Regular}" src-bold="${nsfont.NotoSansCJKkr_Bold}" bytes="2" />
+	<#elseif .locale == "th_TH">
+		<link name="NotoSansThai" type="font" subtype="opentype" src="${nsfont.NotoSansThai_Regular}" src-bold="${nsfont.NotoSansThai_Bold}" bytes="2" />
+	</#if>
+    <style type="text/css">* {
+		<#if .locale == "zh_CN">
+			font-family: NotoSans, NotoSansCJKsc, sans-serif;
+		<#elseif .locale == "zh_TW">
+			font-family: NotoSans, NotoSansCJKtc, sans-serif;
+		<#elseif .locale == "ja_JP">
+			font-family: NotoSans, NotoSansCJKjp, sans-serif;
+		<#elseif .locale == "ko_KR">
+			font-family: NotoSans, NotoSansCJKkr, sans-serif;
+		<#elseif .locale == "th_TH">
+			font-family: NotoSans, NotoSansThai, sans-serif;
+		<#else>
+			font-family: NotoSans, sans-serif;
+		</#if>
+		}
+        .check table, .voucher1 table, .voucher2 table {
+            position: relative;
+            overflow: hidden;
+            font-size: 9pt;
+            padding: 0;
+        }
+		td p { align:left }
+</style>
+</head>
+<body padding="0in 0in 0in 0in" size="A4">
+    <#list records as check>
+<div style="position: relative;font-family: Helvetica,sans-serif;top= -11pt;height: 250pt;width: 69pt;page-break-inside: avoid;font-size: 9pt;">
+<table style="position: absolute;overflow: hidden;left: 528pt;top: 29pt;height: 7pt;width: 40pt;font-size: 9pt;"><tr>
+	<td align="center">${check.checknumber}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 478pt;top: 67pt;height: 18pt;width: 108pt;"><tr>
+	<td>${check.trandate}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 79pt;top: 103pt;height: 18pt;width: 393pt;"><tr>
+	<td>${check.entity}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 479pt;top: 107pt;height: 18pt;width: 111pt;"><tr>
+	<td>**<#if (check.usertotal?length > 0)>${check.usertotal}<#else>${check.total}</#if></td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 35pt;top: 129pt;height: 18pt;width: 572pt;"><tr>
+	<td>${check.totalwords}*********************************************************************</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 67pt;top: 154pt;height: 80pt;width: 537pt;"><tr>
+	<td>${check.address}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 59pt;top: 218pt;height: 18pt;width: 572pt;"><tr>
+	<td>${check.memo}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 528pt;top: 296pt;height: 7pt;width: 40pt;font-size: 9pt;"><tr>
+	<td align="center">${check.checknumber}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 407pt;top: 297pt;height: 13pt;width: 70pt;"><tr>
+	<td>${check.trandate}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 55pt;top: 295pt;height: 13pt;width: 157pt;"><tr>
+	<td>${check.entity}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 148pt;top: 310pt;height: 13pt;width: 325pt;"><tr>
+        <td>${check.memo}</td>
+        </tr></table>
+    
+<table style="position: absolute;overflow: hidden;left: 497pt;top: 311pt;height: 13pt;width: 134pt;"><tr>
+        <td>${check.total}</td>
+        </tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 30pt;top: 512pt;height: 13pt;width: 80pt;"><tr>
+	<td>${check.account}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 134pt;top: 513pt;height: 13pt;width: 325pt;"><tr>
+	<td>${check.memo}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 497pt;top: 515pt;height: 13pt;width: 134pt;"><tr>
+	<td>${check.total}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 528pt;top: 564pt;height: 7pt;width: 40pt;font-size: 9pt;"><tr>
+	<td align="center">${check.checknumber}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 407pt;top: 566pt;height: 13pt;width: 70pt;"><tr>
+	<td>${check.trandate}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 36pt;top: -2pt;height: 13pt;width: 157pt;"><tr>
+	<td>${check.entity}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 148pt;top: 577pt;height: 13pt;width: 325pt;"><tr>
+	<td>${check.memo}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 497pt;top: 579pt;height: 13pt;width: 134pt;"><tr>
+	<td>${check.total}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 30pt;top: 779pt;height: 13pt;width: 67pt;"><tr>
+	<td>${check.account}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 134pt;top: 781pt;height: 13pt;width: 325pt;"><tr>
+	<td>${check.memo}</td>
+	</tr></table>
+
+<table style="position: absolute;overflow: hidden;left: 497pt;top: 783pt;height: 13pt;width: 134pt;"><tr>
+	<td>${check.total}</td>
+	</tr></table>
+</div>
+</#list>
+</body>
+</pdf>
