@@ -53,8 +53,17 @@
 	<td>**<#if (check.usertotal?length > 0)>${check.usertotal}<#else>${check.total}</#if></td>
 	</tr></table>
 
-<table style="position: absolute;overflow: hidden;left: 36pt;top: 126pt;height: 18pt;width: 572pt;"><tr>
-	<td>${check.totalwords}*********************************************************************</td>
+<#function formatTotalString text>
+    <#local textArr = text?split(" and ") />
+  	<#local len = textArr?size />
+    <#if (len==2)>
+        <#return textArr[0]?capitalize + " and " + text[1]> 
+    <#else>
+        <#return text>
+    </#if>  
+</#function>
+<table style="position: absolute;overflow: hidden;left: 36pt;top: 105pt;height: 18pt;width: 572pt;"><tr>
+	<td>${formatTotalString(check.totalwords)}*********************************************************************</td>
 	</tr></table>
 
 <table style="position: absolute;overflow: hidden;left: 58pt;top: 150pt;height: 80pt;width: 537pt;"><tr>
