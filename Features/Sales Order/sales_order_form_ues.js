@@ -63,15 +63,7 @@ define(["N/runtime", "./Module/salesEffective"], function(
   function beforeSubmit(context) {
     var newRecord = context.newRecord;
     try {
-      var custbodyMarginLeft = newRecord.getValue({
-        fieldId: "custbody_margin_left"
-      });
       const totalLine = newRecord.getLineCount({ sublistId: "item" });
-      const countItemsMarginBalance = getCountItemsMargenBalance(newRecord);
-      const avgMarginLeft =
-        countItemsMarginBalance > 0
-          ? parseFloat(custbodyMarginLeft / countItemsMarginBalance).toFixed(2)
-          : 0;
       for (var index = 0; index < totalLine; index++) {
         var quantity = newRecord.getSublistValue({
           sublistId: "item",
@@ -89,13 +81,6 @@ define(["N/runtime", "./Module/salesEffective"], function(
           fieldId: "custcol_total_weight",
           line: index,
           value: quantity * weightinlb
-        });
-        // AVG Margin Balance
-        newRecord.setSublistValue({
-          sublistId: "item",
-          fieldId: "custcol_margin_balance",
-          line: index,
-          value: avgMarginLeft
         });
       }
     } catch (error) {
@@ -312,36 +297,6 @@ define(["N/runtime", "./Module/salesEffective"], function(
         details: error.message
       });
     }
-  }
-
-  /**
-   *
-   */
-  function getCountItemsMargenBalance(newRecord) {
-    var result = 0;
-    try {
-      const totalLine = newRecord.getLineCount({ sublistId: "item" });
-      for (var index = 0; index < totalLine; index++) {
-        var weightinlb = newRecord.getSublistValue({
-          sublistId: "item",
-          fieldId: "custcol45", // weightinlb
-          line: index
-        });
-        // class
-        var custcol_item_class = newRecord.getSublistValue({
-          sublistId: "item",
-          fieldId: "custcol_item_class",
-          line: index
-		});
-		// if(weightinlb !== '' && custcol_item_class !== ''){
-		if(weightinlb !== ''){
-			result++;
-		}
-      }
-    } catch (error) {
-      return 0;
-    }
-    return result;
   }
 
   return {
