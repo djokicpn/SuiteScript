@@ -31,7 +31,7 @@ define([
             console.log("pageInit Error: ", error);
         }
         try {
-            if (mode === "edit") {
+            if (mode === "edit" || mode === "create") {
                 addButtonSetLocation(currentRecord);
             }
         } catch (error) {
