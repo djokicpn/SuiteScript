@@ -34,9 +34,10 @@ define([], function() {
 
 	function beforeSubmit(newRecord) {
 		try {
-			const subTotal = newRecord.getValue({
-				fieldId: 'subtotal'
-			});
+			// const subTotal = newRecord.getValue({
+			// 	fieldId: 'subtotal'
+			// });
+			const subTotal = getSubTotal(newRecord);
 			const discountRate = newRecord.getValue({
 				fieldId: 'discountrate'
 			});
@@ -95,6 +96,28 @@ define([], function() {
 				details: error
 			});
 		}
+	}
+
+	/**
+	 * Get Sub Total cause Discount Item negative
+	 * @param {*} newRecord
+	 */
+	function getSubTotal(newRecord) {
+		var result = 0;
+		try {
+			const totalLine = newRecord.getLineCount({ sublistId: 'item' });
+			for (var index = 0; index < totalLine; index++) {
+				var amount = newRecord.getSublistValue({
+					sublistId: 'item',
+					fieldId: 'amount',
+					line: index
+				});
+				if (amount > 0) {
+					result += amount;
+				}
+			}
+		} catch (error) {}
+		return result;
 	}
 
 	return {
