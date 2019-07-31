@@ -387,17 +387,30 @@ define([
             if (id !== "0") {
               showMicroModal(shippingMethod, false);
               setTimeout(function() {
-                const freightRate = getFreightRateRLC(
+                const dataObj = getFreightRateRLC(
                   id,
                   customerShipping,
                   totalWeight
                 );
-                if (parseInt(freightRate) != 0) {
-                  updateUI(id, freightRate, currentRecord, function() {
-                    MicroModal.close("modal-shipping-method");
-                  });
+                if(dataObj) {
+                  if (dataObj.success) {
+                    if (parseInt(dataObj.freightRate) != 0) {
+                      updateUI(id, dataObj.freightRate, currentRecord, function() {
+                        MicroModal.close("modal-shipping-method");
+                      });
+                    } else {
+                      updateUI(id, "", currentRecord);
+                    }
+                  } else {
+                    document.querySelector(
+                      "#modal-shipping-method-content"
+                    ).innerHTML = "<p>" + dataObj.message + "</p>";
+                  }
                 } else {
-                  updateUI(id, "", currentRecord);
+                  document.querySelector(
+                    "#modal-shipping-method-content"
+                  ).innerHTML =
+                    "<p>Something went wrong. Please try again!</p>";
                 }
               }, 400);
             } else {
@@ -503,28 +516,40 @@ define([
    * @param {*} weight
    */
   function getFreightRateRLC(id, customerShipping, weight) {
-    var result = 0;
-    const odflWSURL = url.resolveScript({
-      scriptId: "customscript_rl_carriers_ws_rl",
-      deploymentId: "customdeploy_rl_carriers_ws_rl"
-    });
-    var res = https.post({
-      url: odflWSURL,
-      body: {
-        locationId: id,
-        customer: customerShipping,
-        weight: weight
-      },
-      headers: { "Content-Type": "application/json" }
-    });
-    if (res.code === 200) {
-      var resObj = JSON.parse(JSON.parse(res.body));
-      if (resObj.success) {
-        result = parseFloat(resObj.data.freightRate).toFixed(2);
+    try {
+      var result = {
+        success: false,
+        freightRate: 0,
+        message: '<p>Something went wrong. Please try again!</p>'
+      };
+      const odflWSURL = url.resolveScript({
+        scriptId: "customscript_rl_carriers_ws_rl",
+        deploymentId: "customdeploy_rl_carriers_ws_rl"
+      });
+      var res = https.post({
+        url: odflWSURL,
+        body: {
+          locationId: id,
+          customer: customerShipping,
+          weight: weight
+        },
+        headers: { "Content-Type": "application/json" }
+      });
+      if (res.code === 200) {
+        var resObj = JSON.parse(JSON.parse(res.body));
+        if (resObj.success) {
+          result.freightRate = parseFloat(resObj.data.freightRate).toFixed(2);
+          result.success = true;
+          result.message = 'Success';
+        } else {
+          result.message = resObj.message;
+        }
       }
+      return result;
+    } catch (error) {
+      
     }
-
-    return result;
+    return false;
   }
 
   /**
