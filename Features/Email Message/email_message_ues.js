@@ -35,9 +35,9 @@ define(['N/ui/serverWidget'], function(serverWidget) {
 			const form = context.form;
 			const request = context.request;
 			const newRecord = context.newRecord;
-			const headers = request.headers;
-			const referer = headers.referer;
-			const refMessage = '<p>Ref: <a href="' + referer + '">' + referer + '</a></p><br /><br />';
+			const headers = request.hasOwnProperty('headers') ? request.headers : false;
+			const referer = headers && headers.hasOwnProperty('referer') ? headers.referer : false;
+			const refMessage = referer ? '<p>Ref: <a href="' + referer + '">' + referer + '</a></p><br /><br />' : '';
 			newRecord.setValue({
 				fieldId: 'message',
 				value: refMessage
