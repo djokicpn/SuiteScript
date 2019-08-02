@@ -1,5 +1,5 @@
 /**
- * REST API for Search Employee Email
+ * REST API for Search External Employee Email
  *
  * @NApiVersion 2.x
  * @NScriptType Restlet
@@ -17,29 +17,14 @@ define(['N/search'], function(search) {
 		try {
 			const validation = doValidation([context.keyword], ['keyword'], 'GET');
 			if (validation.length === 0) {
-				var searchPayload = search.create({
-					type: search.Type.EMPLOYEE,
-					filters: [['isinactive', search.Operator.IS, 'F']],
-					columns: ['email', 'firstname', 'middlename', 'lastname']
+				var employeeSearch = search.global({
+					keywords: context.keyword
 				});
-				var employeeSearch = searchPayload.run().getRange({
-					start: 0,
-					end: 1000
+				employeeSearch = employeeSearch.filter(function(e) {
+					return 'employee' === e.recordType;
 				});
-				employeeArr = [];
-				for (var index = 0; index < employeeSearch.length; index++) {
-					var item = employeeSearch[index];
-					employeeArr.push({
-						name: getName(
-							item.getValue('firstname'),
-							item.getValue('middlename'),
-							item.getValue('lastname')
-						),
-						email: item.getValue('email')
-					});
-				}
-				result.count = employeeArr.length;
-				result.data = employeeArr;
+				result.count = employeeSearch.length;
+				result.data = employeeSearch;
 				result.success = true;
 				result.message = 'Success!';
 			} else {
@@ -53,19 +38,7 @@ define(['N/search'], function(search) {
 	}
 
 	/** HEPPER FUNCTIONS **/
-	/**
-	 * Convert Name
-	 * @param {*} firstname
-	 * @param {*} middlename
-	 * @param {*} lastname
-	 */
-	function getName(firstname, middlename, lastname) {
-		var name = '';
-		name += firstname !== '' ? firstname : '';
-		name += middlename !== '' ? ' ' + middlename : '';
-		name += lastname !== '' ? ' ' + lastname : '';
-		return name;
-	}
+
 	/**
 	 * Validation params
 	 * @param {*} args

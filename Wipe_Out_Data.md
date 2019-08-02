@@ -1,27 +1,29 @@
 - [x] Check https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=Check
-- [] Assembly Build [x] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=Build
-- [] Assembly Unbuild [x] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=Unbuild
-- [] Bill Credit [!] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=VendCred
-- [] Bill Payment [!] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=VendPymt
-- [] Cash Sale [x] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=CashSale
-- [] Credit Memo [x] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=CustCred
-- [] Customer Deposit [x] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=CustDep
-- [] Customer Refund [x] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=CustRfnd
-- [] Deposit [x] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=Deposit
-- [] Inventory Adjustment [x] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=InvAdjst
-- [] Inventory Worksheet [!] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=InvWksht
-- [] Invoice [x] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=CustInvc
-- [] Item Fulfillment [x] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=ItemShip
-- [] Item Receipt [x] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=ItemRcpt
-- [] Journal [x] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=Journal
-- [] Payment https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=CustPymt
-- [] Purchase Order [x] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=PurchOrd
-- [] Quote [x] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=Estimate&whence=
-- [] Return Authorization [x] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=RtnAuth
-- [] Work Order [x] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=WorkOrd
+- [x] Assembly Build https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=Build
+- [x] Assembly Unbuild https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=Unbuild
+- [x] Cash Sale https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=CashSale
+- [x] Deposit Application https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=DepAppl
+- [x] Deposit https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=Deposit
+- [x] Item Fulfillment https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=ItemShip
+- [] Bill Credit (Vendor Credit) https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=VendCred
+- [] Bill Payment (Vendor Payment) https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=VendPymt
+- [] Credit Memo https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=CustCred
+- [] Item Receipt https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=ItemRcpt
+- [] Warranty Registration List https://4283482.app.netsuite.com/app/common/custom/custrecordentrylist.nl?rectype=169
+- [] Return Authorization https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=RtnAuth
+- [] Invoice https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=CustInvc
+- [] Customer Deposit https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=CustDep
+- [] Customer Refund https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=CustRfnd
+- [] Inventory Adjustment https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=InvAdjst
+- [] Journal https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=Journal
+- [] Payment (Customer Payment) https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=CustPymt
+- [] Purchase Order https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=PurchOrd
+- [] Quote https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=Estimate&whence=
+- [] Work Order https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=WorkOrd
 - [] Opportunity https://4283482.app.netsuite.com/app/accounting/transactions/opprtntylist.nl
-- [] Bills => vendorbill https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=VendBill
+- [] Bills => Vendor Bill https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=VendBill
 - [] Inventory Transfer https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=InvTrnfr
-- [] Quotas https://4283482.app.netsuite.com/app/crm/sales/quotalist.nl
-- [] Memorized Transactions https://4283482.app.netsuite.com/app/accounting/otherlists/memdoclist.nl
 - [] Sales Order https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=SalesOrd
+- [] Quotas [!] https://4283482.app.netsuite.com/app/crm/sales/quotalist.nl
+- [] Memorized Transactions [!] https://4283482.app.netsuite.com/app/accounting/otherlists/memdoclist.nl
+- [] Inventory Worksheet [!] https://4283482.app.netsuite.com/app/accounting/transactions/transactionlist.nl?Transaction_TYPE=InvWksht
