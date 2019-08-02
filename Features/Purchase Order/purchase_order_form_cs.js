@@ -46,55 +46,82 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 			showImport(function() {
 				setTimeout(function() {
 					const totalLine = currentRecord.getLineCount({ sublistId: 'item' });
-					var contentHTML =
-						'<textarea name="txtClipboard" id="txtClipboard" rows="3" class="input textarea" style="width: 420px" cols="40"></textarea>';
+					var contentHTML = '<p>Select local CSV File:</p>';
 					contentHTML +=
-						'<button type="button" class="button-blue-small" id="btnRunImport">Import Data</button>';
+						'<p style="margin-bottom: 10px;"><input id="csvImportFile" class="input" type="file" /></p>';
+					// contentHTML +=
+					// 	'<button type="button" class="button-blue-small" id="btnRunImport">Import Data</button>';
 					document.querySelector('#modal-import-content').innerHTML = contentHTML;
-					var btnRunImport = document.getElementById('btnRunImport');
-					btnRunImport.addEventListener('click', function(event) {
-						var txtClipboard = document.getElementById('txtClipboard').value;
-                        var lines = txtClipboard.split(/\n/);
-                        var totalLine = 0;
-						for (var i = 0; i < lines.length; i++) {
-                            const line = lines[i];
-							// only push this line if it contains a non whitespace character.
-							if (/\S/.test(line)) {
-                                // SERIALIZED_ASSEMBLY_ITEM
-                                currentRecord.selectNewLine({sublistId: 'item' });
-                                var cols = line.trim().split(/\t/);
-                                currentRecord.setCurrentSublistValue({
-                                    sublistId: 'item',
-                                    fieldId: 'item',
-                                    value: cols[0],
-                                    forceSyncSourcing: true
-                                });
-                                currentRecord.setCurrentSublistValue({
-                                    sublistId: 'item',
-                                    fieldId: 'quantity',
-                                    value: cols[1],
-                                    forceSyncSourcing: true
-                                });
-                                currentRecord.setCurrentSublistValue({
-                                    sublistId: 'item',
-                                    fieldId: 'description',
-                                    value: cols[2],
-                                    forceSyncSourcing: true
-                                });
-                                var currIndex = currentRecord.getCurrentSublistIndex({
-                                    sublistId: 'item'
-                                });
-                                currentRecord.commitLine({
-                                    sublistId: 'item'
-                                });
-                                console.log(currIndex, cols[0], currentRecord);
-                                // for (var j = 0; j < cols.length; j++) {
-                                //     const col = cols[j];
-                                //     console.log(col.trim());   
-                                // }
-								totalLine++;
+
+					// Events Handing
+					var fileInputCSVImport = document.getElementById('csvImportFile');
+					fileInputCSVImport.addEventListener('change', function() {
+						var reader = new FileReader();
+						reader.onload = function() {
+							// Done
+							// console.log(reader.result);
+							const HEADER = ['VENDOR NAME', 'INVENTORY DETAIL', 'REV', 'QUANTITY', 'DESCRIPTION'];
+							var lines = reader.result.split(/\n/);
+							// Filter Header
+							lines = lines.filter(function(line) {
+								line = line.trim().split(',');
+								return !HEADER.includes(line[0]);
+							});
+							var totalLine = 0;
+							var errorLine = 0;
+							for (var i = 0; i < lines.length; i++) {
+								const line = lines[i];
+								// only push this line if it contains a non whitespace character.
+								if (/\S/.test(line)) {
+									try {
+										// SERIALIZED_ASSEMBLY_ITEM
+										var cols = line.trim().split(',');
+										search.global
+											.promise({
+												keywords: cols[0]
+											})
+											.then(function(result) {
+												console.log(result);
+											})
+											.catch(function onRejected(reason) {
+												throw reason;
+											});
+										// currentRecord.selectNewLine({ sublistId: 'item' });
+										// currentRecord.setCurrentSublistValue({
+										// 	sublistId: 'item',
+										// 	fieldId: 'item',
+										// 	value: cols[0],
+										// 	forceSyncSourcing: true
+										// });
+										// currentRecord.setCurrentSublistValue({
+										// 	sublistId: 'item',
+										// 	fieldId: 'quantity',
+										// 	value: cols[3],
+										// 	forceSyncSourcing: true
+										// });
+										// currentRecord.setCurrentSublistValue({
+										// 	sublistId: 'item',
+										// 	fieldId: 'description',
+										// 	value: cols[4],
+										// 	forceSyncSourcing: true
+										// });
+										// var currIndex = currentRecord.getCurrentSublistIndex({
+										// 	sublistId: 'item'
+										// });
+										// currentRecord.commitLine({
+										// 	sublistId: 'item'
+										// });
+									} catch (error) {
+										console.log(error);
+										errorLine++;
+									}
+									totalLine++;
+								}
 							}
-						}
+							console.log('Total: ', errorLine, totalLine);
+						};
+						// start reading the file. When it is done, calls the onload event defined above.
+						reader.readAsBinaryString(fileInputCSVImport.files[0]);
 					});
 				}, 400);
 			});
