@@ -495,7 +495,7 @@ define([
    */
   function getCustomer(currentRecord) {
     const result = {};
-    result.addr1 = nlapiGetFieldValue("shipaddr1");
+    result.addr1 = nlapiGetFieldValue("shipaddr2");
     result.country = currentRecord.getValue("shipcountry");
     result.city = nlapiGetFieldValue("shipcity");
     result.state = currentRecord.getValue("shipstate");

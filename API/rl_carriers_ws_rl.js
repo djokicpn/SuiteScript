@@ -188,7 +188,7 @@ define(["N/https", "N/search", "N/xml", "/SuiteScripts/Module/Utils"], function(
             tagName: "NetCharge"
           });
           if (NetCharge.length > 0) {
-            var nCharge = NetCharge[0].textContent.replace("$", "");
+            var nCharge = NetCharge[0].textContent.replace("$", "").replace(",", "");
             nCharge =
               parseFloat(nCharge) +
               parseFloat(nCharge) * (ADDITIONAL_FEES / 100);
