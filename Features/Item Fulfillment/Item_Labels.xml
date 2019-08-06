@@ -1,0 +1,53 @@
+<?xml version="1.0"?><!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">
+<pdf>
+  <head>
+    <style>
+    html {
+      height: 100%;
+    }
+    body {
+      height: 100%;
+      margin: 0.5in;
+      border: 2px solid black;
+    }
+    .left {
+      
+    }
+    table {
+      
+    }
+    </style>
+  </head>
+  <body header="nlheader" header-height="0" footer="nlfooter" footer-height="0" size="A4-landscape">
+    <#list record.item as tranline>
+<#list 1..tranline.quantity as i>
+    <table style="width:100%">
+      <tr>
+        <td class="left" colspan="2">
+          <p>S/N #: </p>
+        </td>
+        <td>Assembly By:</td>
+      </tr>
+      <tr>
+        <td class="left" colspan="2">SO #: ${record.sonum} - Production Date: ${record.trandate}</td>
+        <td>Hipot Test:</td>
+      </tr>
+      <tr>
+        <td class="left" colspan="2">${tranline.item}</td>
+        <td>Final QC By:</td>
+      </tr>
+      <tr>
+        <td class="left" colspan="2">WO #: ${record.tranid}</td>
+        <td></td>
+      </tr>
+    </table>
+    <#if i != tranline.quantity>
+<pbr/>
+</#if>
+</#list>
+<#if record.item?size != tranline?counter>
+<pbr/>
+</#if>
+</#list>
+</body>
+</pdf>

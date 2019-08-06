@@ -17,8 +17,9 @@ define(['N/record'], function(record) {
 	function beforeLoad(context) {
 		try {
 			var newRecord = context.newRecord;
+			const form = context.form;
 			try {
-        const orderid = newRecord.getValue('orderid');
+				const orderid = newRecord.getValue('orderid');
 				var so = record.load({
 					type: record.Type.SALES_ORDER,
 					id: orderid,
@@ -29,6 +30,22 @@ define(['N/record'], function(record) {
 			} catch (err) {
 				log.error({
 					title: 'Error buildTableTotalWeight',
+					details: err.message
+				});
+			}
+			try {
+				if (context.type === context.UserEventType.VIEW) {
+					var script =
+						"window.open(nlapiResolveURL('SUITELET', 'customscript_label_items_print_out_sl', 'customdeploy_label_items_print_out_sl') + '&customId=' + nlapiGetRecordId());";
+					form.addButton({
+						id: 'custpage_printitemlabel',
+						label: 'Print Item labels',
+						functionName: script
+					});
+				}
+			} catch (err) {
+				log.error({
+					title: 'Error Add Print Item Label',
 					details: err.message
 				});
 			}
@@ -92,11 +109,11 @@ define(['N/record'], function(record) {
 
 	/** HELPPER FUNCTIONS **/
 	/**
-   * Build Table Total Weight for View Mode
-   * @param {*} newRecord 
-   * @param {*} so 
-   * @param {*} obj 
-   */
+	 * Build Table Total Weight for View Mode
+	 * @param {*} newRecord
+	 * @param {*} so
+	 * @param {*} obj
+	 */
 	function buildTableTotalWeight(newRecord, so, obj) {
 		const tableTotalWeight = obj.tableTotalWeight;
 		// Add Util Function Replace All

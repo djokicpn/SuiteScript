@@ -61,6 +61,7 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 							// Done
 							// console.log(reader.result);
 							const HEADER = ['VENDOR NAME', 'INVENTORY DETAIL', 'REV', 'QUANTITY', 'DESCRIPTION'];
+							const TYPES = ['assemblyitem'];
 							var lines = reader.result.split(/\n/);
 							// Filter Header
 							lines = lines.filter(function(line) {
@@ -68,6 +69,7 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 								return !HEADER.includes(line[0]);
 							});
 							var totalLine = 0;
+							var successLine = 0;
 							var errorLine = 0;
 							for (var i = 0; i < lines.length; i++) {
 								const line = lines[i];
@@ -76,41 +78,39 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 									try {
 										// SERIALIZED_ASSEMBLY_ITEM
 										var cols = line.trim().split(',');
-										search.global
-											.promise({
-												keywords: cols[0]
-											})
-											.then(function(result) {
-												console.log(result);
-											})
-											.catch(function onRejected(reason) {
-												throw reason;
+										// Search by vendorname
+										var results = search.global({
+											keywords: cols[0].trim()
+										});
+										results = results.filter(function(item) {
+											return TYPES.includes(item.recordType);
+										});
+										if (results.length > 0) {
+											var assemblyItem = results[0];
+											currentRecord.selectNewLine({ sublistId: 'item' });
+											currentRecord.setCurrentSublistValue({
+												sublistId: 'item',
+												fieldId: 'item',
+												value: assemblyItem.id,
+												forceSyncSourcing: true
 											});
-										// currentRecord.selectNewLine({ sublistId: 'item' });
-										// currentRecord.setCurrentSublistValue({
-										// 	sublistId: 'item',
-										// 	fieldId: 'item',
-										// 	value: cols[0],
-										// 	forceSyncSourcing: true
-										// });
-										// currentRecord.setCurrentSublistValue({
-										// 	sublistId: 'item',
-										// 	fieldId: 'quantity',
-										// 	value: cols[3],
-										// 	forceSyncSourcing: true
-										// });
-										// currentRecord.setCurrentSublistValue({
-										// 	sublistId: 'item',
-										// 	fieldId: 'description',
-										// 	value: cols[4],
-										// 	forceSyncSourcing: true
-										// });
-										// var currIndex = currentRecord.getCurrentSublistIndex({
-										// 	sublistId: 'item'
-										// });
-										// currentRecord.commitLine({
-										// 	sublistId: 'item'
-										// });
+											currentRecord.setCurrentSublistValue({
+												sublistId: 'item',
+												fieldId: 'quantity',
+												value: cols[3],
+												forceSyncSourcing: true
+											});
+											currentRecord.setCurrentSublistValue({
+												sublistId: 'item',
+												fieldId: 'description',
+												value: cols[4],
+												forceSyncSourcing: true
+											});
+											currentRecord.commitLine({
+												sublistId: 'item'
+											});
+											successLine++;
+										}
 									} catch (error) {
 										console.log(error);
 										errorLine++;
@@ -118,7 +118,7 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 									totalLine++;
 								}
 							}
-							console.log('Total: ', errorLine, totalLine);
+							console.log('Total: ', successLine, errorLine, totalLine);
 						};
 						// start reading the file. When it is done, calls the onload event defined above.
 						reader.readAsBinaryString(fileInputCSVImport.files[0]);
