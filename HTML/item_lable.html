@@ -1,58 +1,63 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Document</title>
-  <style>
+<?xml version="1.0"?><!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">
+<pdf>
+  <head>
+    <style>
     html {
       height: 100%;
     }
     body {
-      border: 2px solid;
-      margin: 0.5in;
-      padding: 0.5in;
       height: 100%;
+      margin: 10px;
+      padding: 10px;
+      border: 2px solid black;
     }
-    .row {}
     .left {
-      width: 70%;
-      float: left;
+      
     }
-    .right {
-      width: 30%;
-      float: right;
+    td {
+      margin: 10px;
+      font-size: 1.6em;
     }
-  </style>
-</head>
-<body>
-  <div class="row">
-    <div class="left">
-      <p>S/N #: 1081715</p>
-      <p>SO: 402906 - Production Date: 8/2/2019</p>
-      <p></p>
-    </div>
-    <div class="right">
-      <div class="leftRow">
-        <p>Assembly By</p>
-        <div class="fill">
-
-        </div>
-      </div>
-      <div class="leftRow">
-        <p>Hipot Test</p>
-        <div class="fill">
-
-        </div>
-      </div>
-      <div class="leftRow">
-        <p>Final QC By</p>
-        <div class="fill">
-
-        </div>
-      </div>
-    </div>
-  </div>
+    .boder-bottom {
+      border-bottom: 2px solid black;
+    }
+    </style>
+  </head>
+  <body size="Letter-landscape">
+    <#list record.item as tranline>
+  <#list 1..tranline.quantity as i>
+    <table style="width:100%;height:100%;table-layout: fixed;">
+      <tr>
+        <td class="left" colspan="2"><strong style="font-size: 2em">S/N #:</strong></td>
+        <td align="center" style="height: 80pt;width: 30%;">Assembly By</td>
+      </tr>
+      <tr>
+        <td class="left" colspan="2">SO #: ${record.sonum}</td>
+        <td class="boder-bottom" style="height: 80pt;width: 30%;">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="left" colspan="2">Production Date: ${record.trandate}</td>
+        <td align="center" style="height: 80pt;width: 30%;">Hipot Test</td>
+      </tr>
+      <tr>
+        <td class="left" colspan="2" rowspan="2">${tranline.item}</td>
+        <td class="boder-bottom" style="height: 80pt;width: 30%;">&nbsp;</td>
+      </tr>
+      <tr>
+        <td align="center" style="height: 80pt;width: 30%;">Final QC By</td>
+      </tr>
+      <tr>
+        <td class="left" colspan="2"><strong style="font-size: 2em">#${record.tranid}</strong></td>
+        <td class="boder-bottom" style="height: 80pt;width: 30%;">&nbsp;</td>
+      </tr>
+    </table>
+    <#if i != tranline.quantity>
+<pbr/>
+</#if>
+</#list>
+<#if record.item?size != tranline?counter>
+<pbr/>
+</#if>
+</#list>
 </body>
-</html>
+</pdf>

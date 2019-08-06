@@ -19,12 +19,24 @@ define(['N/record', 'N/render', 'N/file'], function(record, render, file) {
 				type: record.Type.ITEM_FULFILLMENT,
 				id: customId
 			});
+			// Check Serial Number isserial
 
 			var renderer = render.create();
 			var xmlTmplFile = file.load('SuiteScripts/Lexor_Advanced_PDF_Forms/Item_Labels.xml');
 			renderer.templateContent = xmlTmplFile.getContents();
 			renderer.addRecord('record', itemFulfillment);
 
+			// tranid
+			const fileName = 'item-labels-' + itemFulfillment.getValue('tranid') + '.pdf';
+			// Content-Disposition: attachment; filename="filename.jpg"
+			response.setHeader({
+				name: 'Content-type',
+				value: 'application/pdf'
+			});
+			response.setHeader({
+				name: 'Content-Disposition',
+				value: 'attachment; filename="' + fileName + '"'
+			});
 			response.renderPdf(renderer.renderAsString());
 		} catch (err) {
 			log.error({
