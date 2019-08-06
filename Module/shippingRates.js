@@ -130,28 +130,7 @@ define([
           // 3 Administrator
           // 1069	Lexor | Sales Director
           // 1037	Lexor | Sales Manager
-          if (role === 1037) {
-            var min = 0;
-            var max =
-              (parseFloat(totalFreightRate) - parseFloat(totalDiscount)) *
-              (SD_BY_SALES_MANAGER / 100);
-            if (max >= 0) {
-              discount = parseFloat(
-                Math.min(max, Math.max(min, discountByManagerValue))
-              ).toFixed(2);
-              if (
-                !isNaN(discountByManagerValue) &&
-                (parseFloat(discountByManagerValue) < min ||
-                  parseFloat(discountByManagerValue) > max)
-              ) {
-                alert(
-                  "Value must be less than or equal to " +
-                    parseFloat(max).toFixed(2) +
-                    "."
-                );
-              }
-            }
-          } else if (role === 3 || role === 1069) {
+          if (role === 3 || role === 1069) {
             var min = 0;
             var max =
               (parseFloat(totalFreightRate) - parseFloat(totalDiscount)) *
@@ -172,6 +151,27 @@ define([
                 );
               }
             }
+          } else {
+            var min = 0;
+						var max =
+							(parseFloat(totalFreightRate) - parseFloat(totalDiscount)) *
+							(SD_BY_SALES_MANAGER / 100);
+						if (max >= 0) {
+							discount = parseFloat(
+								Math.min(max, Math.max(min, discountByManagerValue))
+							).toFixed(2);
+							if (
+								!isNaN(discountByManagerValue) &&
+								(parseFloat(discountByManagerValue) < min ||
+									parseFloat(discountByManagerValue) > max)
+							) {
+								alert(
+									'Value must be less than or equal to ' +
+										parseFloat(max).toFixed(2) +
+										'.'
+								);
+							}
+						}
           }
         }
         currentRecord.setValue({
