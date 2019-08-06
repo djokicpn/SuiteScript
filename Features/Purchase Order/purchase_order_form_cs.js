@@ -26,7 +26,6 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 			);
 			addButtonImport(currentRecord);
 		} catch (error) {
-			console.log('pageInit Error: ', error);
 			log.error({
 				title: '[ERROR] pageInit',
 				details: error
@@ -45,84 +44,108 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 		btnImport.addEventListener('click', function(event) {
 			showImport(function() {
 				setTimeout(function() {
-					const totalLine = currentRecord.getLineCount({ sublistId: 'item' });
-					var contentHTML = '<p>Select local CSV File:</p>';
-					contentHTML +=
-						'<p style="margin-bottom: 10px;"><input id="csvImportFile" class="input" type="file" /></p>';
-					// contentHTML +=
-					// 	'<button type="button" class="button-blue-small" id="btnRunImport">Import Data</button>';
-					document.querySelector('#modal-import-content').innerHTML = contentHTML;
+					const entity = currentRecord.getValue('entity');
+					if (!entity || entity === '') {
+						document.querySelector('#modal-import-content').innerHTML =
+							'<p style="color: red">Make sure enter value(s) for: Vendor</p>';
+					} else {
+						const totalLine = currentRecord.getLineCount({
+							sublistId: 'item'
+						});
+						var contentHTML = '<p>Select CSV File:</p>';
+						contentHTML +=
+							'<p style="margin-bottom: 10px;"><input id="csvImportFile" class="input" type="file" /></p>';
+						// contentHTML +=
+						// 	'<button type="button" class="button-blue-small" id="btnRunImport">Import Data</button>';
+						document.querySelector('#modal-import-content').innerHTML = contentHTML;
+						// Events Handing
+						var fileInputCSVImport = document.getElementById('csvImportFile');
+						fileInputCSVImport.addEventListener('change', function() {
+							var reader = new FileReader();
+							reader.onload = function() {
+								// Loading
+								document.querySelector('#modal-import-content').innerHTML =
+									'<div class="lds-ripple"><div></div><div></div></div>';
+								setTimeout(function() {
+									const HEADER = [
+										'VENDOR NAME',
+										'INVENTORY DETAIL',
+										'REV',
+										'QUANTITY',
+										'DESCRIPTION'
+									];
+									const TYPES = ['assemblyitem'];
+									var lines = reader.result.split(/\n/);
+									// Filter Header
+									lines = lines.filter(function(line) {
+										line = line.trim().split(',');
+										return !HEADER.includes(line[0]);
+									});
+									lines = processingData(lines);
+									var errorKeys = [];
+									for (var i = 0; i < Object.keys(lines).length; i++) {
+										const key = Object.keys(lines)[i];
+										try {
+											const item = lines[key];
+											// Search by vendorname
+											var results = search.global({
+												keywords: key
+											});
+											results = results.filter(function(item) {
+												return TYPES.includes(item.recordType);
+											});
+											if (results.length > 0) {
+												var assemblyItem = results[0];
+												currentRecord.selectNewLine({ sublistId: 'item' });
+												currentRecord.setCurrentSublistValue({
+													sublistId: 'item',
+													fieldId: 'item',
+													value: assemblyItem.id,
+													forceSyncSourcing: true
+												});
+												currentRecord.setCurrentSublistValue({
+													sublistId: 'item',
+													fieldId: 'quantity',
+													value: item.qty,
+													forceSyncSourcing: true
+												});
 
-					// Events Handing
-					var fileInputCSVImport = document.getElementById('csvImportFile');
-					fileInputCSVImport.addEventListener('change', function() {
-						var reader = new FileReader();
-						reader.onload = function() {
-							// Done
-							// console.log(reader.result);
-							const HEADER = ['VENDOR NAME', 'INVENTORY DETAIL', 'REV', 'QUANTITY', 'DESCRIPTION'];
-							const TYPES = ['assemblyitem'];
-							var lines = reader.result.split(/\n/);
-							// Filter Header
-							lines = lines.filter(function(line) {
-								line = line.trim().split(',');
-								return !HEADER.includes(line[0]);
-							});
-							var totalLine = 0;
-							var successLine = 0;
-							var errorLine = 0;
-							for (var i = 0; i < lines.length; i++) {
-								const line = lines[i];
-								// only push this line if it contains a non whitespace character.
-								if (/\S/.test(line)) {
-									try {
-										// SERIALIZED_ASSEMBLY_ITEM
-										var cols = line.trim().split(',');
-										// Search by vendorname
-										var results = search.global({
-											keywords: cols[0].trim()
-										});
-										results = results.filter(function(item) {
-											return TYPES.includes(item.recordType);
-										});
-										if (results.length > 0) {
-											var assemblyItem = results[0];
-											currentRecord.selectNewLine({ sublistId: 'item' });
-											currentRecord.setCurrentSublistValue({
-												sublistId: 'item',
-												fieldId: 'item',
-												value: assemblyItem.id,
-												forceSyncSourcing: true
-											});
-											currentRecord.setCurrentSublistValue({
-												sublistId: 'item',
-												fieldId: 'quantity',
-												value: cols[3],
-												forceSyncSourcing: true
-											});
-											currentRecord.setCurrentSublistValue({
-												sublistId: 'item',
-												fieldId: 'description',
-												value: cols[4],
-												forceSyncSourcing: true
-											});
-											currentRecord.commitLine({
-												sublistId: 'item'
-											});
-											successLine++;
+												// Set Rev and Description
+												var revString = objToString(item.rev);
+												if (item.description.trim() !== '') {
+													revString = revString + ' - Description: ' + item.description;
+												}
+												currentRecord.setCurrentSublistValue({
+													sublistId: 'item',
+													fieldId: 'description',
+													value: revString,
+													forceSyncSourcing: true
+												});
+
+												currentRecord.commitLine({
+													sublistId: 'item'
+												});
+											} else {
+												errorKeys.push(key);
+											}
+										} catch (error) {
+											errorKeys.push(key);
 										}
-									} catch (error) {
-										console.log(error);
-										errorLine++;
 									}
-									totalLine++;
-								}
-							}
-							console.log('Total: ', successLine, errorLine, totalLine);
-						};
-						// start reading the file. When it is done, calls the onload event defined above.
-						reader.readAsBinaryString(fileInputCSVImport.files[0]);
-					});
+									if (errorKeys.length === 0) {
+										MicroModal.close('modal-import');
+									} else {
+										document.querySelector('#modal-import-content').innerHTML =
+											'<p style="color: red">Something went wrong with these items: ' +
+											errorKeys.join(', ') +
+											'</p>';
+									}
+								}, 400);
+							};
+							// start reading the file. When it is done, calls the onload event defined above.
+							reader.readAsBinaryString(fileInputCSVImport.files[0]);
+						});
+					}
 				}, 400);
 			});
 		});
@@ -137,7 +160,7 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 		div.id = 'modal-import';
 		div.setAttribute('aria-hidden', 'true');
 		div.innerHTML =
-			'<div class="modal__overlay" tabindex="-1" data-micromodal-close><div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-import-title"><header class="modal__header"><h2 class="modal__title" id="modal-import-title">Import data from Clipboard</h2><button class="modal__close" aria-label="Close modal" data-micromodal-close></button></header><main class="modal__content" id="modal-import-content"><div class="lds-ripple"><div></div><div></div></div></main></div></div>';
+			'<div class="modal__overlay" tabindex="-1" data-micromodal-close><div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-import-title"><header class="modal__header"><h2 class="modal__title" id="modal-import-title">Import CSV</h2><button class="modal__close" aria-label="Close modal" data-micromodal-close></button></header><main class="modal__content" id="modal-import-content"><div class="lds-ripple"><div></div><div></div></div></main></div></div>';
 		document.body.appendChild(div);
 	}
 
@@ -167,6 +190,57 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 		var fileref = document.createElement('style');
 		fileref.innerHTML = str;
 		document.head.appendChild(fileref);
+	}
+
+	/**
+	 * Processing data
+	 * @param {*} lines
+	 */
+	function processingData(lines) {
+		var result = [];
+		for (var i = 0; i < lines.length; i++) {
+			const line = lines[i];
+			if (/\S/.test(line)) {
+				var cols = line.trim().split(',');
+				if (result[cols[0]] == undefined) {
+					result[cols[0]] = {
+						qty: 0,
+						items: [],
+						rev: {},
+						description: ''
+					};
+				}
+				if (result[cols[0]].items.indexOf(cols[1]) === -1) {
+					result[cols[0]].items.push(cols[1]);
+				}
+				// Count Rev
+				if (result[cols[0]].rev[cols[2]] === undefined) {
+					result[cols[0]].rev[cols[2]] = 1;
+				} else {
+					result[cols[0]].rev[cols[2]]++;
+				}
+
+				result[cols[0]].qty = result[cols[0]].qty + parseFloat(cols[3]);
+				result[cols[0]].description = cols[4];
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Obj to String
+	 * @param {*} obj
+	 */
+	function objToString(obj) {
+		var result = '';
+		for (var i = 0; i < Object.keys(obj).length; i++) {
+			const key = Object.keys(obj)[i];
+			result += obj[key] + ' SET REV ' + key;
+			if (i !== Object.keys(obj).length - 1) {
+				result += ', ';
+			}
+		}
+		return result;
 	}
 
 	/**
