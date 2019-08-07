@@ -25,6 +25,7 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 				'.button-blue-small{background-color:#607799;border:.1rem solid #607799;border-radius:.3rem;color:#fff;cursor:pointer;display:inline-block;font-size:.8rem;height:2rem;letter-spacing:.1rem;line-height:.8rem;padding:0 .5rem;text-align:center;text-decoration:none;white-space:nowrap}.button-blue-small:hover{background-color:#606c76;border-color:#606c76;color:#fff;outline:0}.lds-ripple{display:inline-block;position:relative;width:64px;height:64px;display: block;margin-left: auto;margin-right: auto;}.lds-ripple div{position:absolute;border:4px solid #000008;opacity:1;border-radius:50%;animation:lds-ripple 1s cubic-bezier(0,.2,.8,1) infinite}.lds-ripple div:nth-child(2){animation-delay:-.5s}@keyframes lds-ripple{0%{top:28px;left:28px;width:0;height:0;opacity:1}100%{top:-1px;left:-1px;width:58px;height:58px;opacity:0}}.row-shipping-method {display: flex;}.column-shipping-method {flex: 50%;}'
 			);
 			addButtonImport(currentRecord);
+			addButtonImportV1(currentRecord);
 		} catch (error) {
 			log.error({
 				title: '[ERROR] pageInit',
@@ -125,6 +126,123 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 												currentRecord.commitLine({
 													sublistId: 'item'
 												});
+											} else {
+												errorKeys.push(key);
+											}
+										} catch (error) {
+											errorKeys.push(key);
+										}
+									}
+									if (errorKeys.length === 0) {
+										MicroModal.close('modal-import');
+									} else {
+										document.querySelector('#modal-import-content').innerHTML =
+											'<p style="color: red">Something went wrong with these items: ' +
+											errorKeys.join(', ') +
+											'</p>';
+									}
+								}, 400);
+							};
+							// start reading the file. When it is done, calls the onload event defined above.
+							reader.readAsBinaryString(fileInputCSVImport.files[0]);
+						});
+					}
+				}, 400);
+			});
+		});
+	}
+
+	/**
+	 * Add button Import V1
+	 * @param {*} currentRecord
+	 */
+	function addButtonImportV1(currentRecord) {
+		// custpage_import_csv_v2
+		var btnImportV1 = document.getElementById('custpage_import_csv_v2');
+		btnImportV1.addEventListener('click', function(event) {
+			showImport(function() {
+				setTimeout(function() {
+					const entity = currentRecord.getValue('entity');
+					if (!entity || entity === '') {
+						document.querySelector('#modal-import-content').innerHTML =
+							'<p style="color: red">Make sure enter value(s) for: Vendor</p>';
+					} else {
+						var contentHTML = '<p>Select CSV File:</p>';
+						contentHTML +=
+							'<p style="margin-bottom: 10px;"><input id="csvImportFile" class="input" type="file" /></p>';
+						// contentHTML +=
+						// 	'<button type="button" class="button-blue-small" id="btnRunImport">Import Data</button>';
+						document.querySelector('#modal-import-content').innerHTML = contentHTML;
+						// Events Handing
+						var fileInputCSVImport = document.getElementById('csvImportFile');
+						fileInputCSVImport.addEventListener('change', function() {
+							var reader = new FileReader();
+							reader.onload = function() {
+								// Loading
+								document.querySelector('#modal-import-content').innerHTML =
+									'<div class="lds-ripple"><div></div><div></div></div>';
+								setTimeout(function() {
+									const HEADER = [
+										'VENDOR NAME',
+										'INVENTORY DETAIL',
+										'REV',
+										'QUANTITY',
+										'DESCRIPTION'
+									];
+									const TYPES = ['assemblyitem'];
+									var lines = reader.result.split(/\n/);
+									// Filter Header
+									lines = lines.filter(function(line) {
+										line = line.trim().split(',');
+										return !HEADER.includes(line[0]);
+									});
+									var errorKeys = [];
+									for (var i = 0; i < lines.length; i++) {
+										const line = lines[i];
+										try {
+											if (/\S/.test(line)) {
+												var item = line.trim().split(',');
+												// Search by vendorname
+												var results = search.global({
+													keywords: item[0].trim()
+												});
+												results = results.filter(function(item) {
+													return TYPES.includes(item.recordType);
+												});
+												if (results.length > 0) {
+													var assemblyItem = results[0];
+													currentRecord.selectNewLine({ sublistId: 'item' });
+													currentRecord.setCurrentSublistValue({
+														sublistId: 'item',
+														fieldId: 'item',
+														value: assemblyItem.id,
+														forceSyncSourcing: true
+													});
+													currentRecord.setCurrentSublistValue({
+														sublistId: 'item',
+														fieldId: 'quantity',
+														value: item.qty,
+														forceSyncSourcing: true
+													});
+
+													// Set Rev and Description
+													var revString = objToString(item.rev);
+													if (item.description.trim() !== '') {
+														revString = revString + ' - Description: ' + item.description;
+													}
+													currentRecord.setCurrentSublistValue({
+														sublistId: 'item',
+														fieldId: 'description',
+														value: revString,
+														forceSyncSourcing: true
+													});
+
+													currentRecord.commitLine({
+														sublistId: 'item'
+													});
+												} else {
+													errorKeys.push(key);
+												}
 											} else {
 												errorKeys.push(key);
 											}

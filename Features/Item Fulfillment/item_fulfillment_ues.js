@@ -11,7 +11,10 @@ define(['N/record'], function(record) {
 		WILL_CALL: 'Will Call',
 		LEXOR_TRUCK: 'Lexor Truck',
 		ODFL: 'LTL',
-		UPS_PACKAGE: 'UPS Package'
+		UPS_PACKAGE: 'UPS Package',
+		RFQ: 'RFQ (Requesting a Freight Quote)',
+		OCEAN_SERVICE: 'Ocean Service',
+		INTERNATIONAL: 'International'
 	};
 
 	function beforeLoad(context) {
@@ -42,6 +45,16 @@ define(['N/record'], function(record) {
 						label: 'Print Item labels',
 						functionName: script
 					});
+
+					if (checkInventoryDetail(newRecord)) {
+						var scriptSerialOnly =
+							"window.open(nlapiResolveURL('SUITELET', 'customscript_items_print_out_serial_only', 'customdeploy_items_print_out_serial_only') + '&customId=' + nlapiGetRecordId());";
+						form.addButton({
+							id: 'custpage_printitemlabel_serial_only',
+							label: 'Print Item labels Serial Only',
+							functionName: scriptSerialOnly
+						});
+					}
 				}
 			} catch (err) {
 				log.error({
@@ -264,6 +277,27 @@ define(['N/record'], function(record) {
 		}
 
 		return { tableTotalWeight: tableTotalWeight, mapLocation: mapLocation };
+	}
+
+	/**
+	 * Check Inventory Avail
+	 * @param {*} record
+	 */
+	function checkInventoryDetail(newRecord) {
+		var result = false;
+		const totalLine = newRecord.getLineCount({ sublistId: 'item' });
+		for (var index = 0; index < totalLine; index++) {
+			var inventorydetailavail = newRecord.getSublistValue({
+				fieldId: 'inventorydetailavail',
+				sublistId: 'item',
+				line: index
+			});
+			if (inventorydetailavail === 'T') {
+				result = true;
+				break;
+			}
+		}
+		return result;
 	}
 
 	return {

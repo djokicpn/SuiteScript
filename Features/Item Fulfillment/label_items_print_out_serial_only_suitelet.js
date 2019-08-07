@@ -1,5 +1,5 @@
 /**
- * Print out Label Items
+ * Print out Label Items with Serial Only
  *
  * @NApiVersion 2.x
  * @NScriptType Suitelet
@@ -21,7 +21,7 @@ define(['N/record', 'N/render', 'N/file'], function(record, render, file) {
 			});
 
 			var renderer = render.create();
-			var xmlTmplFile = file.load('SuiteScripts/Lexor_Advanced_PDF_Forms/Item_Labels.xml');
+			var xmlTmplFile = file.load('SuiteScripts/Lexor_Advanced_PDF_Forms/Item_Labels_Only_Serial.xml');
 			renderer.templateContent = xmlTmplFile.getContents();
 			renderer.addRecord('record', itemFulfillment);
 
