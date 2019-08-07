@@ -15,7 +15,10 @@ define(['N/runtime', './Module/salesEffective', './Module/discountSoldPriceTaxMo
 		WILL_CALL: 'Will Call',
 		LEXOR_TRUCK: 'Lexor Truck',
 		ODFL: 'LTL',
-		UPS_PACKAGE: 'UPS Package'
+		UPS_PACKAGE: 'UPS Package',
+		RFQ: 'RFQ (Requesting a Freight Quote)',
+		OCEAN_SERVICE: 'Ocean Service',
+		INTERNATIONAL: 'International'
 	};
 
 	function beforeLoad(context) {

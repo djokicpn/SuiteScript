@@ -280,11 +280,25 @@ define([
 		var htmlTableTotalWeight = '';
 		for (var key in tableTotalWeight) {
 			var tplRow = document.getElementById('tplTableTotalWeight').innerHTML;
-			htmlTableTotalWeight += tplRow
+			var trTable = tplRow
 				.replaceAll('____ID___', mapLocation[key])
 				.replaceAll('____LOCATIN___', key)
 				.replaceAll('____TOTAL_WEIGHT___', tableTotalWeight[key])
 				.replaceAll('____DISCOUNT___', mapDiscount[key]);
+				// https://trello.com/c/THc0RaMT/176-update-shipping-table
+				// Ocean Service, International only selected by Processing , admin and sale director.
+				// 1086	Lexor | Processing
+				// 1069	Lexor | Sales Director
+				// 3 Administrator
+				var currentUser = runtime.getCurrentUser();
+				const role = currentUser.role;
+				if(role === 3 || role === 1069 || role === 1086) {
+					var htmlOptions = '<option value="OCEAN_SERVICE">Ocean Service</option><option value="INTERNATIONAL">International</option>';
+					trTable = trTable.replaceAll('____DYNAMIC_OPTIONS____', htmlOptions);
+				} else {
+					trTable = trTable.replaceAll('____DYNAMIC_OPTIONS____', '');
+				}
+			htmlTableTotalWeight += trTable;
 		}
 		document.querySelector('#tableTotalWeight tbody').innerHTML = htmlTableTotalWeight;
 
