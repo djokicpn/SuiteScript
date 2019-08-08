@@ -30,6 +30,33 @@ define([
 		'14': 'UPS Next Day Air Early'
 	};
 
+	const SHIPPING_TYPES = {
+		'-1': '',
+		// domestic
+		'03': 'UPS Ground',
+		'12': 'UPS 3 Day Select',
+		'02': 'UPS 2nd Day Air',
+		'59': 'UPS 2nd Day Air A.M.',
+		'13': 'UPS Next Day Air Saver',
+		'01': 'UPS Next Day Air',
+		'14': 'UPS Next Day Air Early'
+	};
+
+	const MAP_SHIPPING_METHODS = {
+		INTERNATIONAL: 4757,
+		RL_CARRIERS: 18,
+		LEXOR_TRUCK: 4755,
+		OCEAN_SERVICE: 4756,
+		UPS_PACKAGE_02: 4761,
+		UPS_PACKAGE_59: 4760,
+		UPS_PACKAGE_12: 4759,
+		UPS_PACKAGE_03: 4758,
+		UPS_PACKAGE_01: 4764,
+		UPS_PACKAGE_14: 4763,
+		UPS_PACKAGE_13: 4762,
+		WILL_CALL: 4754
+	};
+
 	/**
 	 * pageInit EVENT
 	 * init Data and UI for Shipping Method Module
@@ -65,6 +92,10 @@ define([
 		currentRecord.setValue({
 			fieldId: 'custbodytotal_freight_rate',
 			value: ''
+		});
+		currentRecord.setValue({
+			fieldId: 'shipmethod',
+			value: 4494
 		});
 		document.getElementById('tblShippingDiscount').innerHTML = 0;
 		currentRecord.setValue({
@@ -285,19 +316,20 @@ define([
 				.replaceAll('____LOCATIN___', key)
 				.replaceAll('____TOTAL_WEIGHT___', tableTotalWeight[key])
 				.replaceAll('____DISCOUNT___', mapDiscount[key]);
-				// https://trello.com/c/THc0RaMT/176-update-shipping-table
-				// Ocean Service, International only selected by Processing , admin and sale director.
-				// 1086	Lexor | Processing
-				// 1069	Lexor | Sales Director
-				// 3 Administrator
-				var currentUser = runtime.getCurrentUser();
-				const role = currentUser.role;
-				if(role === 3 || role === 1069 || role === 1086) {
-					var htmlOptions = '<option value="OCEAN_SERVICE">Ocean Service</option><option value="INTERNATIONAL">International</option>';
-					trTable = trTable.replaceAll('____DYNAMIC_OPTIONS____', htmlOptions);
-				} else {
-					trTable = trTable.replaceAll('____DYNAMIC_OPTIONS____', '');
-				}
+			// https://trello.com/c/THc0RaMT/176-update-shipping-table
+			// Ocean Service, International only selected by Processing , admin and sale director.
+			// 1086	Lexor | Processing
+			// 1069	Lexor | Sales Director
+			// 3 Administrator
+			var currentUser = runtime.getCurrentUser();
+			const role = currentUser.role;
+			if (role === 3 || role === 1069 || role === 1086) {
+				var htmlOptions =
+					'<option value="OCEAN_SERVICE">Ocean Service</option><option value="INTERNATIONAL">International</option>';
+				trTable = trTable.replaceAll('____DYNAMIC_OPTIONS____', htmlOptions);
+			} else {
+				trTable = trTable.replaceAll('____DYNAMIC_OPTIONS____', '');
+			}
 			htmlTableTotalWeight += trTable;
 		}
 		document.querySelector('#tableTotalWeight tbody').innerHTML = htmlTableTotalWeight;
@@ -361,7 +393,7 @@ define([
 							showMicroModal(shippingMethod, false);
 							setTimeout(function() {
 								const freightRate = getFreightRateODFL(id, customerShipping, totalWeight);
-								updateUI(id, freightRate, currentRecord, function() {
+								updateUI(id, freightRate, '-1', currentRecord, function() {
 									MicroModal.close('modal-shipping-method');
 								});
 							}, 400);
@@ -370,7 +402,7 @@ define([
 								document.querySelector('#modal-shipping-method-content').innerHTML =
 									'<p>This location not available.</p>';
 							});
-							updateUI(id, '', currentRecord);
+							updateUI(id, '', '-1', currentRecord);
 						}
 						break;
 					case 'RL_CARRIERS':
@@ -381,11 +413,11 @@ define([
 								if (dataObj) {
 									if (dataObj.success) {
 										if (parseInt(dataObj.freightRate) != 0) {
-											updateUI(id, dataObj.freightRate, currentRecord, function() {
+											updateUI(id, dataObj.freightRate, '-1', currentRecord, function() {
 												MicroModal.close('modal-shipping-method');
 											});
 										} else {
-											updateUI(id, '', currentRecord);
+											updateUI(id, '', '-1', currentRecord);
 										}
 									} else {
 										document.querySelector('#modal-shipping-method-content').innerHTML =
@@ -401,7 +433,7 @@ define([
 								document.querySelector('#modal-shipping-method-content').innerHTML =
 									'<p>This location not available.</p>';
 							});
-							updateUI(id, '', currentRecord);
+							updateUI(id, '', '-1', currentRecord);
 						}
 
 						break;
@@ -431,29 +463,29 @@ define([
 								document.querySelector('#modal-shipping-method-content').innerHTML =
 									'<p>This location not available.</p>';
 							});
-							updateUI(id, '', currentRecord);
+							updateUI(id, '', '-1', currentRecord);
 						}
 						break;
 					case 'LEXOR_TRUCK':
 						if (id !== '0') {
-							updateUI(id, 100, currentRecord);
+							updateUI(id, 100, '-1', currentRecord);
 						} else {
 							showMicroModal(shippingMethod, function(modal) {
 								document.querySelector('#modal-shipping-method-content').innerHTML =
 									'<p>This location not available.</p>';
 							});
-							updateUI(id, '', currentRecord);
+							updateUI(id, '', '-1', currentRecord);
 						}
 						break;
 					default:
 						if (id !== '0') {
-							updateUI(id, 0, currentRecord);
+							updateUI(id, 0, '-1', currentRecord);
 						} else {
 							showMicroModal(shippingMethod, function(modal) {
 								document.querySelector('#modal-shipping-method-content').innerHTML =
 									'<p>This location not available.</p>';
 							});
-							updateUI(id, '', currentRecord);
+							updateUI(id, '', '-1', currentRecord);
 						}
 						break;
 				}
@@ -470,7 +502,7 @@ define([
 		for (var i = 0; i < selectShippingMethod.length; i++) {
 			selectShippingMethod[i].addEventListener('change', function(event) {
 				const id = this.getAttribute('data-id');
-				updateUI(id, '', currentRecord);
+				updateUI(id, '', '-1', currentRecord);
 			});
 		}
 	}
@@ -599,11 +631,13 @@ define([
 	/**
 	 * Update UI
 	 */
-	function updateUI(id, freightRate, currentRecord, done) {
+	function updateUI(id, freightRate, shippingType, currentRecord, done) {
 		// Freight Rate Column
 		updateFreightRate(id, freightRate, currentRecord);
 		// Update Discount
 		updateDiscount(id, freightRate, currentRecord);
+		// Shipping Type
+		updateShippingType(id, shippingType, currentRecord);
 		//custbodyshipping_discount_by_manager
 		currentRecord.setValue({
 			fieldId: 'custbodyshipping_discount_by_manager',
@@ -713,11 +747,58 @@ define([
 	}
 
 	/**
+	 * Update Shipping Type
+	 */
+	function updateShippingType(id, shippingType, currentRecord) {
+		document.getElementById('shippingType-' + id).innerHTML =
+			SHIPPING_TYPES[shippingType] === undefined ? '' : SHIPPING_TYPES[shippingType];
+		document.getElementById('shippingType-' + id).setAttribute('data-shipping-type', shippingType);
+
+		const locationRows = document.querySelectorAll('#tableTotalWeight .location');
+		var isOtherShippingMethod = locationRows.length > 1;
+		if (locationRows.length === 1) {
+			const firstLocation = locationRows[0];
+			const firstLocationId = firstLocation.getAttribute('data-location');
+			const shippingMethod = document.getElementById('shippingMethod-' + firstLocationId).value;
+			if (shippingMethod === 'UPS_PACKAGE') {
+				var shippingType = document.getElementById('shippingType-' + firstLocationId);
+				var shippingTypeId =
+					shippingType !== null ? shippingType.getAttribute('data-shipping-type') : false;
+				currentRecord.setValue({
+					fieldId: 'shipmethod',
+					value:
+						shippingTypeId && MAP_SHIPPING_METHODS['UPS_PACKAGE_' + shippingTypeId] !== undefined
+							? MAP_SHIPPING_METHODS['UPS_PACKAGE_' + shippingTypeId]
+							: 4494
+				});
+			} else {
+				currentRecord.setValue({
+					fieldId: 'shipmethod',
+					value:
+						MAP_SHIPPING_METHODS[shippingMethod] === undefined
+							? 4494
+							: MAP_SHIPPING_METHODS[shippingMethod]
+				});
+			}
+		} else {
+			currentRecord.setValue({
+				fieldId: 'shipmethod',
+				value: 4494
+			});
+		}
+	}
+
+	/**
 	 * Save Data
 	 * @param {*} currentRecord
 	 */
 	function saveData(currentRecord) {
-		var attributes = ['data-location', 'data-freight-rate', 'data-total-weight'];
+		var attributes = [
+			'data-location',
+			'data-freight-rate',
+			'data-total-weight',
+			'data-shipping-type'
+		];
 		const dataJSON = parser.parseTable(document.getElementById('tableTotalWeight'), attributes);
 		currentRecord.setValue({
 			fieldId: 'custbody_table_total_weight_data',
@@ -739,7 +820,13 @@ define([
 				const element = dataObj[index];
 				document.getElementById('shippingMethod-' + element.LOCATION).value =
 					element.SHIPPING_METHOD;
-				updateUI(element.LOCATION, element.FREIGHT_RATE, currentRecord, false);
+				updateUI(
+					element.LOCATION,
+					element.FREIGHT_RATE,
+					element.hasOwnProperty('SHIPPING_TYPE') ? element.SHIPPING_TYPE : '',
+					currentRecord,
+					false
+				);
 			}
 		} catch (error) {}
 	}
@@ -772,7 +859,9 @@ define([
 		for (var index = 0; index < data.length; index++) {
 			var el = data[index];
 			html +=
-				'<p><input type="radio" id="upsServices-' +
+				'<p><input type="radio" data-id="' +
+				el.code +
+				'" id="upsServices-' +
 				el.code +
 				'" name="upsServices" value="' +
 				el.total +
@@ -796,7 +885,8 @@ define([
 		for (var i = 0; i < UPSPackageServices.length; i++) {
 			UPSPackageServices[i].addEventListener('change', function(event) {
 				const total = this.value;
-				updateUI(id, total, currentRecord, function() {
+				const dataId = this.getAttribute('data-id');
+				updateUI(id, total, dataId, currentRecord, function() {
 					MicroModal.close('modal-shipping-method');
 				});
 			});

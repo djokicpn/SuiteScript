@@ -1,10 +1,10 @@
 <template id="tplTableTotalWeight">
   <tr id="row-____ID___">
-    <td data-location="____ID___">____LOCATIN___</td>
+    <td class="location" data-location="____ID___">____LOCATIN___</td>
     <td style="text-align: center;" class="totalWeight" id="totalWeight-____ID___" data-total-weight="____TOTAL_WEIGHT___">
       ____TOTAL_WEIGHT___</td>
     <td>
-      <select class="shippingMethod" data-id="____ID___" id="shippingMethod-____ID___">
+      <select class="shippingMethod" style="width: 120px;" data-id="____ID___" id="shippingMethod-____ID___">
         <!-- <option value="ODFL">ODFL</option> -->
         <option value="RL_CARRIERS">LTL</option>
         <option value="UPS_PACKAGE">UPS Package</option>
@@ -14,6 +14,7 @@
         ____DYNAMIC_OPTIONS____
       </select>
     </td>
+    <td style="text-align: center;display: none" class="shippingType" id="shippingType-____ID___" data-shipping-type=""></td>
     <td style="text-align: center;" class="freightRate" id="freightRate-____ID___" data-freight-rate=""></td>
     <td style="text-align: center;" class="shippingDiscount" id="shippingDiscount-____ID___" data-discount="____DISCOUNT___" data-shipping-discount="0">0</td>
     <td>
@@ -30,6 +31,7 @@
       <th>Location</th>
       <th>Total Weight</th>
       <th>Shipping Method</th>
+      <th style="display: none">Shipping Type</th>
       <th>Freight Rate</th>
       <th>Discount</th>
       <th>Action</th>
@@ -41,6 +43,7 @@
       <td>Total</td>
       <td id="tblTotalWeight" style="text-align: center;">0</td>
       <td></td>
+      <td style="display: none"></td>
       <td id="tblFreightRate" style="text-align: center;">0</td>
       <td id="tblShippingDiscount" style="text-align: center;">0</td>
       <td></td>
