@@ -158,7 +158,7 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 	 */
 	function addButtonImportV1(currentRecord) {
 		// custpage_import_csv_v2
-		var btnImportV1 = document.getElementById('custpage_import_csv_v2');
+		var btnImportV1 = document.getElementById('btnImportV1');
 		btnImportV1.addEventListener('click', function(event) {
 			showImport(function() {
 				setTimeout(function() {
@@ -197,20 +197,31 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 										return !HEADER.includes(line[0]);
 									});
 									var errorKeys = [];
+									var cacheResults = [];
 									for (var i = 0; i < lines.length; i++) {
 										const line = lines[i];
 										try {
 											if (/\S/.test(line)) {
 												var item = line.trim().split(',');
-												// Search by vendorname
-												var results = search.global({
-													keywords: item[0].trim()
-												});
-												results = results.filter(function(item) {
-													return TYPES.includes(item.recordType);
-												});
-												if (results.length > 0) {
-													var assemblyItem = results[0];
+												var assemblyItem = false;
+												var key = item[0].trim();
+												if (cacheResults[key] === undefined) {
+													// Search by vendorname
+													var results = search.global({
+														keywords: key
+													});
+													results = results.filter(function(item) {
+														return TYPES.includes(item.recordType);
+													});
+													if (results.length > 0) {
+														assemblyItem = results[0];
+														cacheResults[key] = assemblyItem;
+													}
+												} else {
+													assemblyItem = cacheResults[key];
+												}
+
+												if (assemblyItem) {
 													currentRecord.selectNewLine({ sublistId: 'item' });
 													currentRecord.setCurrentSublistValue({
 														sublistId: 'item',
@@ -220,20 +231,28 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 													});
 													currentRecord.setCurrentSublistValue({
 														sublistId: 'item',
+														fieldId: 'custcol_laclong_code',
+														value: item[1].trim(),
+														forceSyncSourcing: true
+													});
+													currentRecord.setCurrentSublistValue({
+														sublistId: 'item',
+														fieldId: 'custcol_laclong_rev',
+														value: item[2].trim(),
+														forceSyncSourcing: true
+													});
+													currentRecord.setCurrentSublistValue({
+														sublistId: 'item',
 														fieldId: 'quantity',
-														value: item.qty,
+														value: parseFloat(item[3].trim()),
 														forceSyncSourcing: true
 													});
 
-													// Set Rev and Description
-													var revString = objToString(item.rev);
-													if (item.description.trim() !== '') {
-														revString = revString + ' - Description: ' + item.description;
-													}
+													// Set Description
 													currentRecord.setCurrentSublistValue({
 														sublistId: 'item',
 														fieldId: 'description',
-														value: revString,
+														value: item[4].trim(),
 														forceSyncSourcing: true
 													});
 
