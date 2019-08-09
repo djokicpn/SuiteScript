@@ -299,9 +299,10 @@ define(["N/search", "/SuiteScripts/lib/autocomplete"], function(
     var result = "";
     if (address.length >= 4) {
       address.splice(0, 1);
-      if (address.length === 4) {
-        address.splice(1, 1);
-      }
+      //https://trello.com/c/wVD1x8Xc/185-urgent-default-shipping-problem
+      // if (address.length === 4) {
+      //   address.splice(1, 1);
+      // }
     }
 
     result = address.join("\n");
