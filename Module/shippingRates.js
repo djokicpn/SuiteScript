@@ -320,10 +320,12 @@ define([
 			// Ocean Service, International only selected by Processing , admin and sale director.
 			// 1086	Lexor | Processing
 			// 1069	Lexor | Sales Director
+			// https://trello.com/c/aQSMxxRy/187-add-permission-shipping-method-on-table
+			// 1037	Lexor | Sales Manager
 			// 3 Administrator
 			var currentUser = runtime.getCurrentUser();
 			const role = currentUser.role;
-			if (role === 3 || role === 1069 || role === 1086) {
+			if (role === 3 || role === 1069 || role === 1086 || role === 1037) {
 				var htmlOptions =
 					'<option value="OCEAN_SERVICE">Ocean Service</option><option value="INTERNATIONAL">International</option>';
 				trTable = trTable.replaceAll('____DYNAMIC_OPTIONS____', htmlOptions);
