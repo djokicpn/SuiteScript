@@ -26,10 +26,21 @@ define(['N/runtime', './Module/salesEffective', './Module/discountSoldPriceTaxMo
 			var form = context.form;
 			var newRecord = context.newRecord;
 			var item = form.getSublist({ id: 'item' });
+			var currentUser = runtime.getCurrentUser();
+			const role = currentUser.role;
 			if (item) {
 				var amountCol = item.getField({ id: 'amount' });
 				if (amountCol) {
 					amountCol.updateDisplayType({ displayType: 'disabled' });
+				}
+
+				// 1036	Lexor | Sales Representative
+				// https://trello.com/c/2hFT7AlH/188-disable-tax-rate-for-sale-rep
+				if (role === 1036) {
+					var taxrate1Col = item.getField({ id: 'taxrate1' });
+					if (taxrate1Col) {
+						taxrate1Col.updateDisplayType({ displayType: 'hidden' });
+					}
 				}
 
 				// Set Default Location
