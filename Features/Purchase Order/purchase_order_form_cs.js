@@ -26,6 +26,7 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 			);
 			addButtonImport(currentRecord);
 			addButtonImportV1(currentRecord);
+			addButtonImportSuitelet(currentRecord);
 		} catch (error) {
 			log.error({
 				title: '[ERROR] pageInit',
@@ -200,11 +201,12 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 									var cacheResults = [];
 									for (var i = 0; i < lines.length; i++) {
 										const line = lines[i];
-										try {
-											if (/\S/.test(line)) {
-												var item = line.trim().split(',');
-												var assemblyItem = false;
-												var key = item[0].trim();
+
+										if (/\S/.test(line)) {
+											var item = line.trim().split(',');
+											var assemblyItem = false;
+											var key = item[0].trim();
+											try {
 												if (cacheResults[key] === undefined) {
 													// Search by vendorname
 													var results = search.global({
@@ -259,14 +261,10 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 													currentRecord.commitLine({
 														sublistId: 'item'
 													});
-												} else {
-													errorKeys.push(key);
 												}
-											} else {
+											} catch (error) {
 												errorKeys.push(key);
 											}
-										} catch (error) {
-											errorKeys.push(key);
 										}
 									}
 									if (errorKeys.length === 0) {
@@ -282,6 +280,37 @@ define(['/SuiteScripts/lib/micromodal.min', 'N/search'], function(MicroModal, se
 							// start reading the file. When it is done, calls the onload event defined above.
 							reader.readAsBinaryString(fileInputCSVImport.files[0]);
 						});
+					}
+				}, 400);
+			});
+		});
+	}
+
+	/**
+	 * Add Button Import from Clipboard
+	 * @param {*} currentRecord
+	 */
+	function addButtonImportSuitelet(currentRecord) {
+		initModalImport();
+		var custpageImportCSV = document.getElementById('custpage_import_csv');
+		custpageImportCSV.addEventListener('click', function(event) {
+			showImport(function() {
+				setTimeout(function() {
+					const entity = currentRecord.getValue('entity');
+					if (!entity || entity === '') {
+						document.querySelector('#modal-import-content').innerHTML =
+							'<p style="color: red">Make sure enter value(s) for: Vendor</p>';
+					} else {
+						var vendorId = currentRecord.getValue('entity');
+						window.location.replace(
+							nlapiResolveURL(
+								'SUITELET',
+								'customscript_purchase_order_suitelet',
+								'customdeploy_purchase_order_suitelet'
+							) +
+								'&vendorId=' +
+								vendorId
+						);
 					}
 				}, 400);
 			});

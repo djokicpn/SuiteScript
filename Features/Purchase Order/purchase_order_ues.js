@@ -6,15 +6,14 @@
  * @author trungpv <trung@lexor.com>
  */
 define([], function() {
-	
 	function beforeLoad(context) {
 		try {
 			const form = context.form;
 			try {
-				if (context.type === context.UserEventType.EDIT || context.type === context.UserEventType.CREATE) {
+				if (context.type === context.UserEventType.CREATE) {
 					form.addButton({
-						id: 'custpage_import_csv_v2',
-						label: 'Import CSV Line By Line'
+						id: 'custpage_import_csv',
+						label: 'Import CSV with serial number'
 					});
 				}
 			} catch (err) {
