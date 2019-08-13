@@ -19,10 +19,12 @@ define(['N/runtime'], function(runtime) {
 		try {
 			// processDateDeposited(context);
 			disabledFeatureByRoles(context);
-			currentRecord.setValue({
-				fieldId: 'payment',
-				value: ''
-			});
+			if (context.mode === 'create') {
+				currentRecord.setValue({
+					fieldId: 'payment',
+					value: ''
+				});
+			}
 		} catch (error) {
 			console.log(error);
 			log.error({
