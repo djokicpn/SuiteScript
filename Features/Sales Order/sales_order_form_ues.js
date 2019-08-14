@@ -35,11 +35,16 @@ define(['N/runtime', './Module/salesEffective', './Module/discountSoldPriceTaxMo
 				}
 
 				// 1036	Lexor | Sales Representative
+				// 1032	Lexor | Customer Service Rep
 				// https://trello.com/c/2hFT7AlH/188-disable-tax-rate-for-sale-rep
-				if (role === 1036) {
+				if (role === 1036 || role === 1032) {
 					var taxrate1Col = item.getField({ id: 'taxrate1' });
 					if (taxrate1Col) {
-						taxrate1Col.updateDisplayType({ displayType: 'hidden' });
+						taxrate1Col.updateDisplayType({ displayType: 'disabled' });
+					}
+					var taxcodeCol = item.getField({ id: 'taxcode' });
+					if (taxcodeCol) {
+						taxcodeCol.updateDisplayType({ displayType: 'disabled' });
 					}
 				}
 
