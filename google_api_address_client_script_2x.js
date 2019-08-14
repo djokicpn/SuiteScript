@@ -9,6 +9,12 @@ define(['N/search', 'N/runtime'], function(search, runtime) {
 	const API_KEY = '***REMOVED***';
 	const GOOGLE_API = 'https://maps.googleapis.com/maps/api/js?key=' + API_KEY + '&libraries=places';
 
+	// 3 Administrator
+	// 1069	Lexor | Sales Director
+	// 1037	Lexor | Sales Manager
+	// Disabled except these roles
+	const EXCEPT_ROLES = [3, 1069, 1037];
+
 	/* === EVENTS FUNCTIONS === */
 
 	/**
@@ -90,7 +96,8 @@ define(['N/search', 'N/runtime'], function(search, runtime) {
 		// 3 Administrator
 		// 1069	Lexor | Sales Director
 		// 1037	Lexor | Sales Manager
-		if (!(role === 3 || role === 1069 || role === 1037)) {
+		// if (!(role === 3 || role === 1069 || role === 1037)) {
+		if (!EXCEPT_ROLES.includes(role)) {
 			var addr2 = currentRecord.getField({
 				fieldId: 'addr2'
 			});
@@ -127,7 +134,8 @@ define(['N/search', 'N/runtime'], function(search, runtime) {
 			// 3 Administrator
 			// 1069	Lexor | Sales Director
 			// 1037	Lexor | Sales Manager
-			if (!(role === 3 || role === 1069 || role === 1037)) {
+			// if (!(role === 3 || role === 1069 || role === 1037)) {
+			if (!EXCEPT_ROLES.includes(role)) {
 				var addrtext = currentRecord.getField({
 					fieldId: 'addrtext'
 				});
