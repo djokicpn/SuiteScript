@@ -96,8 +96,8 @@ define(['N/search', 'N/runtime'], function(search, runtime) {
 		// 3 Administrator
 		// 1069	Lexor | Sales Director
 		// 1037	Lexor | Sales Manager
-		// if (!(role === 3 || role === 1069 || role === 1037)) {
-		if (!EXCEPT_ROLES.includes(role)) {
+		if (!(role === 3 || role === 1069 || role === 1037 || role ===1049)) {
+		// if (!EXCEPT_ROLES.includes(role)) {
 			var addr2 = currentRecord.getField({
 				fieldId: 'addr2'
 			});
@@ -134,8 +134,8 @@ define(['N/search', 'N/runtime'], function(search, runtime) {
 			// 3 Administrator
 			// 1069	Lexor | Sales Director
 			// 1037	Lexor | Sales Manager
-			// if (!(role === 3 || role === 1069 || role === 1037)) {
-			if (!EXCEPT_ROLES.includes(role)) {
+			if (!(role === 3 || role === 1069 || role === 1037)) {
+			// if (!EXCEPT_ROLES.includes(role)) {
 				var addrtext = currentRecord.getField({
 					fieldId: 'addrtext'
 				});
