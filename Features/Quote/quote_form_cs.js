@@ -167,9 +167,9 @@ define([
 			var defaultLocation = currentRecord.getValue({
 				fieldId: 'custbody_set_line_location'
 			});
-			var defaultLocationDisplay = document.querySelector(
-				'input[name="inpt_custbody_set_line_location"]'
-			).value;
+			var defaultLocationDisplay = currentRecord.getText({
+				fieldId: 'custbody_set_line_location'
+			});
 			showLoading(function() {
 				setTimeout(function() {
 					const totalLine = currentRecord.getLineCount({ sublistId: 'item' });
