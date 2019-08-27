@@ -5,11 +5,12 @@
  * @NScriptType UserEventScript
  * @author trungpv <trung@lexor.com>
  */
-define(['N/runtime', './Module/salesEffective', './Module/discountSoldPriceTaxModule'], function(
-	runtime,
-	salesEffective,
-	discountSoldPriceTaxModule
-) {
+define([
+	'N/runtime',
+	'./Module/salesEffective',
+	'./Module/discountSoldPriceTaxModule',
+	'N/search'
+], function(runtime, salesEffective, discountSoldPriceTaxModule, search) {
 	const SHIPPING_METHODS = {
 		RL_CARRIERS: 'LTL',
 		WILL_CALL: 'Will Call',
@@ -22,9 +23,9 @@ define(['N/runtime', './Module/salesEffective', './Module/discountSoldPriceTaxMo
 	};
 
 	function beforeLoad(context) {
+		var form = context.form;
+		var newRecord = context.newRecord;
 		try {
-			var form = context.form;
-			var newRecord = context.newRecord;
 			var item = form.getSublist({ id: 'item' });
 			var currentUser = runtime.getCurrentUser();
 			const role = currentUser.role;
@@ -80,6 +81,9 @@ define(['N/runtime', './Module/salesEffective', './Module/discountSoldPriceTaxMo
 				details: error.message
 			});
 		}
+
+		// Get Remaining Balance
+		setRemainingBalance(newRecord);
 	}
 
 	function beforeSubmit(context) {
@@ -313,6 +317,49 @@ define(['N/runtime', './Module/salesEffective', './Module/discountSoldPriceTaxMo
 				details: error.message
 			});
 		}
+	}
+
+	/**
+	 * set Remaining Balance
+	 * @param {*} so
+	 */
+	function setRemainingBalance(so) {
+		var result = 0;
+		try {
+			const total = parseFloat(so.getValue('total'));
+			if (total > 0) {
+				var listDeposits = search.create({
+					type: search.Type.CUSTOMER_DEPOSIT,
+					filters: [
+						{
+							name: 'salesorder',
+							operator: search.Operator.IS,
+							values: [so.id]
+						}
+					],
+					columns: ['amount', 'status']
+				});
+				var totalDeposited = 0;
+				listDeposits.run().each(function(item) {
+					var status = item.getValue('status');
+					if (status !== 'unapprovedPayment') {
+						var totalValue = item.getValue('amount');
+						totalDeposited = parseFloat(totalDeposited) + parseFloat(totalValue);
+					}
+					return true;
+				});
+				result = total - totalDeposited;
+			}
+		} catch (error) {
+			log.error({
+				title: '[ERROR] getRemainingBalance SO ' + so.id,
+				details: error.message
+			});
+		}
+		so.setValue({
+			fieldId: 'custbody_remaining_balance',
+			value: result
+		});
 	}
 
 	return {
