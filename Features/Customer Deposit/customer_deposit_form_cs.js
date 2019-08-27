@@ -40,9 +40,9 @@ define(['N/runtime'], function(runtime) {
 	 * @param {*} context
 	 */
 	function fieldChanged(context) {
+		const currentRecord = context.currentRecord;
+		const fieldId = context.fieldId;
 		try {
-			const currentRecord = context.currentRecord;
-			const fieldId = context.fieldId;
 			// If Payment Method contain LIST_PAYMENT_CARDS
 			if (fieldId === 'paymentmethod') {
 				// paymentmethod
@@ -71,7 +71,15 @@ define(['N/runtime'], function(runtime) {
 					});
 				}
 			}
+		} catch (error) {
+			console.log(error);
+			log.error({
+				title: '[ERROR] fieldChanged > paymentmethod',
+				details: error.message
+			});
+		}
 
+		try {
 			// custbody65 => Checkbox PAYMENT RECEIVED
 			if (fieldId === 'custbody65') {
 				const paymentReceived = currentRecord.getValue({
@@ -92,7 +100,7 @@ define(['N/runtime'], function(runtime) {
 		} catch (error) {
 			console.log(error);
 			log.error({
-				title: 'Error pageInit',
+				title: '[ERROR] fieldChanged > custbody65 => Checkbox PAYMENT RECEIVED',
 				details: error.message
 			});
 		}
