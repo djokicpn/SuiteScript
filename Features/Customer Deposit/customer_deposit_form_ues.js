@@ -62,7 +62,7 @@ define(['./Module/salesEffective', 'N/record', 'N/search'], function(
 					var isunappvpymt = cd.getValue({
 						fieldId: 'isunappvpymt'
 					});
-					if (isunappvpymt) {
+					if (isunappvpymt === 'T') {
 						cd.setValue({
 							fieldId: 'undepfunds',
 							value: 'T'
