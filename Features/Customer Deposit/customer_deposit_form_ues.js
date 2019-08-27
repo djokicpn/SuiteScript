@@ -5,13 +5,30 @@
  * @NScriptType UserEventScript
  * @author trungpv <trung@lexor.com>
  */
-define(['./Module/salesEffective', 'N/record'], function(salesEffective, record) {
+define(['./Module/salesEffective', 'N/record', 'N/search'], function(
+	salesEffective,
+	record,
+	search
+) {
 	function beforeLoad(context) {
 		var form = context.form;
-		// Set Under. Funds as Default
-		var undepfunds = form.getField({ id: 'undepfunds' });
-		if (undepfunds) {
-			undepfunds.defaultValue = 'T';
+		var newRecord = context.newRecord;
+		try {
+			// Set Under. Funds as Default
+			var undepfunds = form.getField({ id: 'undepfunds' });
+			if (undepfunds) {
+				undepfunds.defaultValue = 'T';
+			}
+
+			newRecord.setValue({
+				fieldId: 'custbody_remaining_balance',
+				value: getRemainingBalance(newRecord.getValue('salesorder'))
+			});
+		} catch (error) {
+			log.error({
+				title: '[ERROR] beforeLoad',
+				details: error.message
+			});
 		}
 	}
 
@@ -70,6 +87,49 @@ define(['./Module/salesEffective', 'N/record'], function(salesEffective, record)
 				details: error.message
 			});
 		}
+	}
+
+	/**
+	 * Get Remaining Balance
+	 */
+	function getRemainingBalance(salesOrderId) {
+		var result = 0;
+		try {
+			var so = record.load({
+				type: record.Type.SALES_ORDER,
+				id: salesOrderId
+			});
+			const total = parseFloat(so.getValue('total'));
+			if (total > 0) {
+				var listDeposits = search.create({
+					type: search.Type.CUSTOMER_DEPOSIT,
+					filters: [
+						{
+							name: 'salesorder',
+							operator: search.Operator.IS,
+							values: [salesOrderId]
+						}
+					],
+					columns: ['amount', 'status']
+				});
+				var totalDeposited = 0;
+				listDeposits.run().each(function(item) {
+					var status = item.getValue('status');
+					if (status !== 'unapprovedPayment') {
+						var totalValue = item.getValue('amount');
+						totalDeposited = parseFloat(totalDeposited) + parseFloat(totalValue);
+					}
+					return true;
+				});
+				result = total - totalDeposited;
+			}
+		} catch (error) {
+			log.error({
+				title: '[ERROR] getRemainingBalance SO ' + so.id,
+				details: error.message
+			});
+		}
+		return result;
 	}
 
 	return {

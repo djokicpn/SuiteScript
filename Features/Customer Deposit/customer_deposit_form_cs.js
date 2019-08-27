@@ -19,10 +19,12 @@ define(['N/runtime'], function(runtime) {
 		try {
 			// processDateDeposited(context);
 			disabledFeatureByRoles(context);
+
 			if (context.mode === 'create') {
+				remainingBalance = currentRecord.getValue({ fieldId: 'custbody_remaining_balance' });
 				currentRecord.setValue({
 					fieldId: 'payment',
-					value: ''
+					value: remainingBalance
 				});
 			}
 		} catch (error) {
