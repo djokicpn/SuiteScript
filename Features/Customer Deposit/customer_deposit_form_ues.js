@@ -121,7 +121,7 @@ define(['./Module/salesEffective', 'N/record', 'N/search'], function(
 					}
 					return true;
 				});
-				result = total - totalDeposited;
+				result = parseFloat(total - totalDeposited).toFixed(2);
 			}
 		} catch (error) {
 			log.error({
