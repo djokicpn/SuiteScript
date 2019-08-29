@@ -125,7 +125,7 @@ define(['./Module/salesEffective', 'N/record', 'N/search'], function(
 			}
 		} catch (error) {
 			log.error({
-				title: '[ERROR] getRemainingBalance SO ' + so.id,
+				title: '[ERROR] getRemainingBalance SO ',
 				details: error.message
 			});
 		}
