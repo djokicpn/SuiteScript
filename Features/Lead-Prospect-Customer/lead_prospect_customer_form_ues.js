@@ -5,7 +5,7 @@
  * @NScriptType UserEventScript
  * @author trungpv <trung@lexor.com>
  */
-define([], function() {
+define(['./Module/salesRepModule'], function(salesRepModule) {
 	function beforeLoad(context) {
 		try {
 			var form = context.form;
@@ -19,9 +19,10 @@ define([], function() {
 		} catch (error) {
 			log.error({
 				title: 'Error beforeLoad',
-				details: error.message
+				details: error
 			});
 		}
+		salesRepModule.beforeLoad(context);
 	}
 
 	function beforeSubmit(context) {}

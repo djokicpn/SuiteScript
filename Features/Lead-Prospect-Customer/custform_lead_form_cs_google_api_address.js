@@ -4,7 +4,7 @@
  * @NScriptType ClientScript
  * @author trungpv <trung@lexor.com>
  */
-define(['N/search', '/SuiteScripts/lib/autocomplete'], function(search, autocomplete) {
+define(['N/search', '/SuiteScripts/lib/autocomplete', './Module/salesRepModule'], function(search, autocomplete, salesRepModule) {
 	/* === VARS === */
 
 	/* === EVENTS FUNCTIONS === */
@@ -305,6 +305,8 @@ define(['N/search', '/SuiteScripts/lib/autocomplete'], function(search, autocomp
 				window.open('/app/common/entity/custjob.nl?id=' + item.id, '_blank');
 			}
 		});
+
+		salesRepModule.pageInit(context);
 
 		return;
 	}
