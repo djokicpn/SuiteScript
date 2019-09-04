@@ -9,8 +9,9 @@ define([
 	'N/runtime',
 	'./Module/salesEffective',
 	'./Module/discountSoldPriceTaxModule',
-	'N/search'
-], function(runtime, salesEffective, discountSoldPriceTaxModule, search) {
+	'N/search',
+	'./Module/marginBalance'
+], function(runtime, salesEffective, discountSoldPriceTaxModule, search, marginBalance) {
 	const SHIPPING_METHODS = {
 		RL_CARRIERS: 'LTL',
 		WILL_CALL: 'Will Call',
@@ -116,6 +117,7 @@ define([
 			});
 		}
 		discountSoldPriceTaxModule.beforeSubmit(newRecord);
+		marginBalance.beforeSubmit(newRecord);
 	}
 
 	function afterSubmit(context) {

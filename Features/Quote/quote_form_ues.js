@@ -5,9 +5,10 @@
  * @NScriptType UserEventScript
  * @author trungpv <trung@lexor.com>
  */
-define(['N/runtime', './Module/discountSoldPriceTaxModule'], function(
+define(['N/runtime', './Module/discountSoldPriceTaxModule', './Module/marginBalance'], function(
 	runtime,
-	discountSoldPriceTaxModule
+	discountSoldPriceTaxModule,
+	marginBalance
 ) {
 	const SHIPPING_METHODS = {
 		RL_CARRIERS: 'LTL',
@@ -79,15 +80,7 @@ define(['N/runtime', './Module/discountSoldPriceTaxModule'], function(
 	function beforeSubmit(context) {
 		var newRecord = context.newRecord;
 		try {
-			var custbodyMarginLeft = newRecord.getValue({
-				fieldId: 'custbody_margin_left'
-			});
 			const totalLine = newRecord.getLineCount({ sublistId: 'item' });
-			const countItemsMarginBalance = getCountItemsMargenBalance(newRecord);
-			const avgMarginLeft =
-				countItemsMarginBalance > 0
-					? parseFloat(custbodyMarginLeft / countItemsMarginBalance).toFixed(2)
-					: 0;
 			for (var index = 0; index < totalLine; index++) {
 				var quantity = newRecord.getSublistValue({
 					sublistId: 'item',
@@ -106,13 +99,6 @@ define(['N/runtime', './Module/discountSoldPriceTaxModule'], function(
 					line: index,
 					value: quantity * weightinlb
 				});
-				// AVG Margin Balance
-				newRecord.setSublistValue({
-					sublistId: 'item',
-					fieldId: 'custcol_margin_balance',
-					line: index,
-					value: avgMarginLeft
-				});
 			}
 		} catch (error) {
 			log.error({
@@ -121,6 +107,7 @@ define(['N/runtime', './Module/discountSoldPriceTaxModule'], function(
 			});
 		}
 		discountSoldPriceTaxModule.beforeSubmit(newRecord);
+		marginBalance.beforeSubmit(newRecord);
 	}
 
 	function afterSubmit(context) {}
@@ -289,65 +276,36 @@ define(['N/runtime', './Module/discountSoldPriceTaxModule'], function(
 	 */
 	function shippingDiscountByTheManager(context) {
 		try {
-					var form = context.form;
-					var newRecord = context.newRecord;
-					var currentUser = runtime.getCurrentUser();
-					const role = currentUser.role;
+			var form = context.form;
+			var newRecord = context.newRecord;
+			var currentUser = runtime.getCurrentUser();
+			const role = currentUser.role;
 
-					// https://trello.com/c/RvSjr3Is/180-shipping-discount-for-customer-service-team
-					// set shipping discount by manager is 100% for all role
-					// var custbodyshipping_discount_by_manager = form.getField({
-					// 	id: 'custbodyshipping_discount_by_manager'
-					// });
-					// if (custbodyshipping_discount_by_manager) {
-					// 	// 3 Administrator
-					// 	// 1069	Lexor | Sales Director
-					// 	// 1037	Lexor | Sales Manager
-					// 	if (role === 3 || role === 1069 || role === 1037) {
-					// 		custbodyshipping_discount_by_manager.updateDisplayType({
-					// 			displayType: 'NORMAL'
-					// 		});
-					// 	} else {
-					// 		custbodyshipping_discount_by_manager.updateDisplayType({
-					// 			displayType: 'disabled'
-					// 		});
-					// 	}
-					// }
-				} catch (error) {
+			// https://trello.com/c/RvSjr3Is/180-shipping-discount-for-customer-service-team
+			// set shipping discount by manager is 100% for all role
+			// var custbodyshipping_discount_by_manager = form.getField({
+			// 	id: 'custbodyshipping_discount_by_manager'
+			// });
+			// if (custbodyshipping_discount_by_manager) {
+			// 	// 3 Administrator
+			// 	// 1069	Lexor | Sales Director
+			// 	// 1037	Lexor | Sales Manager
+			// 	if (role === 3 || role === 1069 || role === 1037) {
+			// 		custbodyshipping_discount_by_manager.updateDisplayType({
+			// 			displayType: 'NORMAL'
+			// 		});
+			// 	} else {
+			// 		custbodyshipping_discount_by_manager.updateDisplayType({
+			// 			displayType: 'disabled'
+			// 		});
+			// 	}
+			// }
+		} catch (error) {
 			log.error({
 				title: 'Error shippingDiscountByTheManager',
 				details: error.message
 			});
 		}
-	}
-
-	/**
-	 *
-	 */
-	function getCountItemsMargenBalance(newRecord) {
-		var result = 0;
-		try {
-			const totalLine = newRecord.getLineCount({ sublistId: 'item' });
-			for (var index = 0; index < totalLine; index++) {
-				var weightinlb = newRecord.getSublistValue({
-					sublistId: 'item',
-					fieldId: 'custcol45', // weightinlb
-					line: index
-				});
-				// class
-				var custcol_item_class = newRecord.getSublistValue({
-					sublistId: 'item',
-					fieldId: 'custcol_item_class',
-					line: index
-				});
-				if (weightinlb !== '') {
-					result++;
-				}
-			}
-		} catch (error) {
-			return 0;
-		}
-		return result;
 	}
 
 	return {
