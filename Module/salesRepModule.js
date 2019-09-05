@@ -16,7 +16,7 @@ define(['N/search'], function(search) {
 		}
 		try {
 			const HTML_TEMPLATE =
-				'<select id="add_sales_rep">____OPTIONS____</select> <button type="button" class="button-blue-small" id="btnAddSalesRep" title="Add Sales Rep.">Add Sales Team</button><style>.button-blue-small{background-color:#607799;border:0.1rem solid #607799;border-radius:0.3rem;color:#fff;cursor:pointer;display:inline-block;font-size:0.8rem;height:2rem;letter-spacing:0.1rem;line-height:0.8rem;padding:0 0.5rem;text-align:center;text-decoration:none;white-space:nowrap}.button-blue-small:hover{background-color:#606c76;border-color:#606c76;color:#fff;outline:0}</style>';
+				'<select id="add_sales_rep">____OPTIONS____</select> <button type="button" class="button-blue-small" id="btnAddSalesRep" title="Add Sales Rep.">Add Sales Rep.</button><style>.button-blue-small{background-color:#607799;border:0.1rem solid #607799;border-radius:0.3rem;color:#fff;cursor:pointer;display:inline-block;font-size:0.8rem;height:2rem;letter-spacing:0.1rem;line-height:0.8rem;padding:0 0.5rem;text-align:center;text-decoration:none;white-space:nowrap}.button-blue-small:hover{background-color:#606c76;border-color:#606c76;color:#fff;outline:0}</style>';
 
 			var HTML = '';
 			var salesReps = search.create({
