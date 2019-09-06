@@ -122,7 +122,14 @@ define([
 
 	function afterSubmit(context) {
 		var newRecord = context.newRecord;
-		salesEffective.update(newRecord.id);
+		try {
+			salesEffective.update(newRecord.id);	
+		} catch (error) {
+			log.error({
+				title: 'Error afterSubmit',
+				details: error
+			});
+		}
 	}
 
 	/** HEPPER FUNCTIONS **/

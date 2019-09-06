@@ -74,12 +74,27 @@ define(['N/record', 'N/search'], function(record, search) {
 						fieldId: 'saleseffectivedate',
 						value: salesEffectiveDate ? salesEffectiveDate : new Date(createdDate)
 					});
+
+					// https://trello.com/c/8kvQ8u6S/200-check-boxes-customer-deposit-0-and-sale-effective-day
+					// 18 : Credit Memo
+					const terms = so.getValue('terms');
+					if(terms === '18') {
+						so.setValue({
+							fieldId: 'custbody_cd_greater_than_zero',
+							value: true
+						});
+						so.setValue({
+							fieldId: 'custbody_sales_effective_checked',
+							value: true
+						});
+					}
+
 					so.save();
 				}
 			} catch (err) {
 				log.error({
 					title: 'Error Sales Effective SO ' + salesOrderId,
-					details: err.message
+					details: err
 				});
 			}
 		}
