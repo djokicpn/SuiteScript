@@ -4,7 +4,7 @@
  * @NModuleScope Public
  * @author trungpv <trung@lexor.com>
  */
-define(['N/search'], function(search) {
+define(['N/search', 'N/runtime'], function(search, runtime) {
 	/**
 	 * Before Load Event
 	 * @param {*} currentRecord
@@ -31,6 +31,12 @@ define(['N/search'], function(search) {
 						name: 'isinactive',
 						operator: search.Operator.IS,
 						values: 'F'
+					},
+					{
+						name: 'internalid',
+						join: 'role',
+						operator: search.Operator.ANYOF,
+						values: 1036 // 1036	Lexor | Sales Representative
 					}
 				],
 				columns: ['internalid', 'firstname', 'middlename', 'lastname', 'email']
@@ -69,23 +75,21 @@ define(['N/search'], function(search) {
 			const currentRecord = context.currentRecord;
 			var btnAddSalesRep = document.getElementById('btnAddSalesRep');
 			btnAddSalesRep.addEventListener('click', function(event) {
-				var salesRep = document.getElementById('add_sales_rep');
-				salesRep = salesRep != null ? salesRep.value : false;
-				if (salesRep) {
-					currentRecord.selectNewLine({ sublistId: 'salesteam' });
-					currentRecord.setCurrentSublistValue({
-						sublistId: 'salesteam',
-						fieldId: 'employee',
-						value: salesRep,
-						forceSyncSourcing: true
+				try {
+					var salesRep = document.getElementById('add_sales_rep');
+					salesRep = salesRep != null ? salesRep.value : false;
+					if (salesRep) {
+						if (addSalesRep(currentRecord, salesRep)) {
+							if(isSalesRep()) {
+								rearrangeSalesRepContribution(currentRecord);
+							}
+						}
+					}
+				} catch (error) {
+					log.error({
+						title: '[SALES_REP_MODULE] > btnAddSalesRep Click',
+						details: error
 					});
-					currentRecord.setCurrentSublistValue({
-						sublistId: 'salesteam',
-						fieldId: 'salesrole',
-						value: -2,
-						forceSyncSourcing: true
-					});
-					currentRecord.commitLine({ sublistId: 'salesteam' });
 				}
 			});
 		} catch (error) {
@@ -108,6 +112,81 @@ define(['N/search'], function(search) {
 		name += middlename !== '' ? ' ' + middlename : '';
 		name += lastname !== '' ? ' ' + lastname : '';
 		return name;
+	}
+
+	/**
+	 * Rearrange Sales Rep. Contribution
+	 * @param {*} currentRecord
+	 */
+	function rearrangeSalesRepContribution(currentRecord) {
+		try {
+			const totalLine = currentRecord.getLineCount({ sublistId: 'salesteam' });
+			const avgContribution = parseFloat(100 / totalLine).toFixed(2);
+			for (var line = 0; line < totalLine; line++) {
+				currentRecord.selectLine({
+					sublistId: 'salesteam',
+					line: line
+				});
+				currentRecord.setCurrentSublistValue({
+					sublistId: 'salesteam',
+					fieldId: 'contribution',
+					value: avgContribution,
+					forceSyncSourcing: true
+				});
+				currentRecord.commitLine({
+					sublistId: 'salesteam'
+				});
+			}
+		} catch (error) {
+			log.error({
+				title: '[SALES_REP_MODULE] > rearrangeSalesRepContribution',
+				details: error
+			});
+		}
+	}
+
+	/**
+	 * Add Sales Rep
+	 * @param {*} currentRecord
+	 * @param {*} salesRep
+	 */
+	function addSalesRep(currentRecord, salesRep) {
+		try {
+			currentRecord.selectNewLine({ sublistId: 'salesteam' });
+			currentRecord.setCurrentSublistValue({
+				sublistId: 'salesteam',
+				fieldId: 'employee',
+				value: salesRep,
+				forceSyncSourcing: true
+			});
+			currentRecord.setCurrentSublistValue({
+				sublistId: 'salesteam',
+				fieldId: 'salesrole',
+				value: -2,
+				forceSyncSourcing: true
+			});
+			currentRecord.commitLine({ sublistId: 'salesteam' });
+			return true;
+		} catch (error) {
+			log.error({
+				title: '[SALES_REP_MODULE] > addSalesRep',
+				details: error
+			});
+			return false;
+		}
+	}
+
+	/**
+	 * Check Current User is Sales Rep.
+	 */
+	function isSalesRep() {
+		var currentUser = runtime.getCurrentUser();
+		const role = currentUser.role;
+		// 1036	Lexor | Sales Representative
+		if (role === 1036) {
+			return true;
+		}
+		return false;
 	}
 
 	return {
