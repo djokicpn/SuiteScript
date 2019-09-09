@@ -31,7 +31,7 @@ define(['N/runtime'], function(runtime) {
 			console.log(error);
 			log.error({
 				title: 'Error pageInit',
-				details: error.message
+				details: error
 			});
 		}
 		return;
@@ -77,7 +77,29 @@ define(['N/runtime'], function(runtime) {
 			console.log(error);
 			log.error({
 				title: '[ERROR] fieldChanged > paymentmethod',
-				details: error.message
+				details: error
+			});
+		}
+
+		try {
+			// creditcard field Id Changed
+			if (fieldId === 'creditcard') {
+				// custbody66 => DATE RECEIVED
+				currentRecord.setValue({
+					fieldId: 'custbody66',
+					value: new Date()
+				});
+				// custbody65 => Checkbox PAYMENT RECEIVED
+				currentRecord.setValue({
+					fieldId: 'custbody65',
+					value: true
+				});
+			}
+		} catch (error) {
+			console.log(error);
+			log.error({
+				title: '[ERROR] fieldChanged > creditcard',
+				details: error
 			});
 		}
 
@@ -103,7 +125,7 @@ define(['N/runtime'], function(runtime) {
 			console.log(error);
 			log.error({
 				title: '[ERROR] fieldChanged > custbody65 => Checkbox PAYMENT RECEIVED',
-				details: error.message
+				details: error
 			});
 		}
 		return;
