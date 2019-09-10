@@ -419,7 +419,9 @@ define([
 												MicroModal.close('modal-shipping-method');
 											});
 										} else {
-											updateUI(id, '', '-1', currentRecord);
+											updateUI(id, '', '-1', currentRecord, function() {
+												MicroModal.close('modal-shipping-method');
+											});
 										}
 									} else {
 										document.querySelector('#modal-shipping-method-content').innerHTML =
