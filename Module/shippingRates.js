@@ -30,6 +30,11 @@ define([
 		'14': 'UPS Next Day Air Early'
 	};
 
+	const LTL_SERVICES = {
+		ODFL: 'Old Dominion',
+		RL_CARRIERS: 'R+L Carriers'
+	};
+
 	const SHIPPING_TYPES = {
 		'-1': '',
 		// domestic
@@ -411,6 +416,35 @@ define([
 						if (id !== '0') {
 							showMicroModal(shippingMethod, false);
 							setTimeout(function() {
+								const dataObj = getFreightRateLTL(id, customerShipping, totalWeight);
+								if (dataObj) {
+									if (dataObj.success) {
+										const htmlUPSServices = buildLTLServices(dataObj.data);
+										document.querySelector(
+											'#modal-shipping-method-content'
+										).innerHTML = htmlUPSServices;
+										bindingLTLServices(id, currentRecord);
+									} else {
+										document.querySelector('#modal-shipping-method-content').innerHTML =
+											'<p>' + dataObj.message + '</p>';
+									}
+								} else {
+									document.querySelector('#modal-shipping-method-content').innerHTML =
+										'<p>Something went wrong. Please try again!</p>';
+								}
+							}, 400);
+						} else {
+							showMicroModal(shippingMethod, function(modal) {
+								document.querySelector('#modal-shipping-method-content').innerHTML =
+									'<p>This location not available.</p>';
+							});
+							updateUI(id, '', '-1', currentRecord);
+						}
+						break;
+					case 'RL_CARRIERS_SINGLE':
+						if (id !== '0') {
+							showMicroModal(shippingMethod, false);
+							setTimeout(function() {
 								const dataObj = getFreightRateRLC(id, customerShipping, totalWeight);
 								if (dataObj) {
 									if (dataObj.success) {
@@ -617,6 +651,35 @@ define([
 			});
 			var res = https.post({
 				url: odflWSURL,
+				body: {
+					locationId: id,
+					customer: customerShipping,
+					weight: weight
+				},
+				headers: { 'Content-Type': 'application/json' }
+			});
+			if (res.code === 200) {
+				var resObj = JSON.parse(JSON.parse(res.body));
+				return resObj;
+			}
+		} catch (error) {}
+		return false;
+	}
+
+	/**
+	 * LTL
+	 * @param {*} id
+	 * @param {*} customerShipping
+	 * @param {*} weight
+	 */
+	function getFreightRateLTL(id, customerShipping, weight) {
+		try {
+			const ltlWSURL = url.resolveScript({
+				scriptId: 'customscript_ltl_ws_rl',
+				deploymentId: 'customdeploy_ltl_ws_rl'
+			});
+			var res = https.post({
+				url: ltlWSURL,
 				body: {
 					locationId: id,
 					customer: customerShipping,
@@ -882,12 +945,59 @@ define([
 	}
 
 	/**
+	 * Build LTL Services
+	 * @param {*} data
+	 */
+	function buildLTLServices(data) {
+		var html = '<div class="ltl-services">';
+		for (var index = 0; index < data.length; index++) {
+			var el = data[index];
+			html +=
+				'<p ' +
+				(parseFloat(el.total) <= 0 ? 'style="color: #B3B3B3;"' : '') +
+				'><input type="radio" ' +
+				(parseFloat(el.total) <= 0 ? 'disabled' : '') +
+				' data-id="' +
+				el.code +
+				'" id="ltlServices-' +
+				el.code +
+				'" name="ltlServices" value="' +
+				el.total +
+				'"> <label for="ltlServices-' +
+				el.code +
+				'">' +
+				LTL_SERVICES[el.code] +
+				' ($' +
+				el.total +
+				')</label></p>';
+		}
+		html += '</div>';
+		return html;
+	}
+
+	/**
 	 * Binding Radio Button UPS
 	 */
 	function bindingUPSPackageServices(id, currentRecord) {
 		var UPSPackageServices = document.querySelectorAll('.ups-package-services input[type="radio"]');
 		for (var i = 0; i < UPSPackageServices.length; i++) {
 			UPSPackageServices[i].addEventListener('change', function(event) {
+				const total = this.value;
+				const dataId = this.getAttribute('data-id');
+				updateUI(id, total, dataId, currentRecord, function() {
+					MicroModal.close('modal-shipping-method');
+				});
+			});
+		}
+	}
+
+	/**
+	 * Binding Radio Button LTL
+	 */
+	function bindingLTLServices(id, currentRecord) {
+		var LTLServices = document.querySelectorAll('.ltl-services input[type="radio"]');
+		for (var i = 0; i < LTLServices.length; i++) {
+			LTLServices[i].addEventListener('change', function(event) {
 				const total = this.value;
 				const dataId = this.getAttribute('data-id');
 				updateUI(id, total, dataId, currentRecord, function() {
