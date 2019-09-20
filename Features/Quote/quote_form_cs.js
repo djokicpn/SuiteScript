@@ -31,7 +31,7 @@ define([
 			console.log('pageInit Error: ', error);
 		}
 		try {
-			if (mode === 'edit' || mode === 'create') {
+			if (mode === 'edit' || mode === 'create' || mode === 'copy') {
 				addButtonSetLocation(currentRecord);
 			}
 		} catch (error) {
@@ -167,7 +167,7 @@ define([
 			var defaultLocation = currentRecord.getValue({
 				fieldId: 'custbody_set_line_location'
 			});
-			var defaultLocationDisplay = currentRecord.getText({
+          	var defaultLocationDisplay = currentRecord.getText({
 				fieldId: 'custbody_set_line_location'
 			});
 			showLoading(function() {

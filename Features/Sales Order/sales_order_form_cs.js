@@ -73,7 +73,7 @@ define([
 			console.log('pageInit Error: ', error);
 		}
 		try {
-			if (mode === 'edit' || mode === 'create') {
+			if (mode === 'edit' || mode === 'create' || mode === 'copy') {
 				addButtonSetLocation(currentRecord);
 			}
 		} catch (error) {
