@@ -372,7 +372,7 @@ define([
 	}
 
 	/**
-	 *
+	 * Is Refund
 	 * @param {*} customerDepositId
 	 */
 	function isRefund(customerDepositId) {

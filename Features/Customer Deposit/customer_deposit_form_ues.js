@@ -115,7 +115,7 @@ define(['./Module/salesEffective', 'N/record', 'N/search'], function(
 				var totalDeposited = 0;
 				listDeposits.run().each(function(item) {
 					var status = item.getValue('status');
-					if (status !== 'unapprovedPayment') {
+					if (status !== 'unapprovedPayment' && !isRefund(item.id)) {
 						var totalValue = item.getValue('amount');
 						totalDeposited = parseFloat(totalDeposited) + parseFloat(totalValue);
 					}
@@ -127,6 +127,55 @@ define(['./Module/salesEffective', 'N/record', 'N/search'], function(
 			log.error({
 				title: '[ERROR] getRemainingBalance SO ',
 				details: error.message
+			});
+		}
+		return result;
+	}
+
+	/**
+	 * Is Refund
+	 * @param {*} customerDepositId
+	 */
+	function isRefund(customerDepositId) {
+		var result = false;
+		try {
+			var listDepositApplication = search.create({
+				type: search.Type.DEPOSIT_APPLICATION,
+				filters: [
+					{
+						name: 'appliedtotransaction',
+						operator: search.Operator.IS,
+						values: [customerDepositId]
+					}
+				],
+				columns: ['appliedtotransaction']
+			});
+			listDepositApplication.run().each(function(item) {
+				var listCustomerRefund = search.create({
+					type: search.Type.CUSTOMER_REFUND,
+					filters: [
+						{
+							name: 'applyingtransaction',
+							operator: search.Operator.IS,
+							values: [item.id]
+						}
+					],
+					columns: ['applyingtransaction']
+				});
+
+				if(listCustomerRefund.run().getRange({
+					start: 0,
+					end: 1000
+				}).length > 0) {
+					result = true;
+					return false;
+				}
+				return true;
+			});
+		} catch (error) {
+			log.error({
+				title: '[ERROR] isRefund',
+				details: error
 			});
 		}
 		return result;
