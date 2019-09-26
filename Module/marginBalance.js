@@ -49,10 +49,6 @@ define(['N/record'], function(record) {
 				id: salesOrderId
 			});
 			const status = salesOrder.getValue('status');
-			log.error({
-				title: '[MARGIN_BALANCE_MODULE] > updateSalesOrder',
-				details: status + ' - ' + isInvoiceDeleted
-			});
 			const custbodyMarginLeft = salesOrder.getValue('custbody_margin_left');
 			const totalLine = salesOrder.getLineCount({ sublistId: 'item' });
 			for (var index = 0; index < totalLine; index++) {
