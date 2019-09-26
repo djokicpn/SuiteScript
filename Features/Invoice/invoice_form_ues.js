@@ -6,7 +6,11 @@
  * @NScriptType UserEventScript
  * @author trungpv <trung@lexor.com>
  */
-define(['N/record'], function(record) {
+define(['N/record', './Module/marginBalance'], function(record, marginBalance) {
+	/**
+	 * Before Submit Event
+	 * @param {*} context 
+	 */
 	function beforeLoad(context) {
 		const type = context.type;
 		if (type !== context.UserEventType.CREATE) return;
@@ -36,7 +40,29 @@ define(['N/record'], function(record) {
 		}
 	}
 
-	function afterSubmit(context) {}
+	/**
+	 * After Submit Event
+	 * @param {*} context 
+	 */
+	function afterSubmit(context) {
+		const type = context.type;
+		var invoiceRecord = context.newRecord;
+		if (invoiceRecord.type === 'invoice') {
+			try {
+				const saleOrderId = invoiceRecord.getValue('createdfrom');
+				if (type === context.UserEventType.DELETE) {
+					marginBalance.updateSalesOrder(saleOrderId, true);
+				} else {
+					marginBalance.updateSalesOrder(saleOrderId, false);
+				}
+			} catch (error) {
+				log.error({
+					title: '---- Error afterSubmit Invoice ' + invoiceRecord.id,
+					details: error.message
+				});
+			}
+		}
+	}
 
 	return {
 		beforeLoad: beforeLoad,

@@ -23,6 +23,10 @@ define([
 		INTERNATIONAL: 'International'
 	};
 
+	/**
+	 * Before Load Event
+	 * @param {*} context 
+	 */
 	function beforeLoad(context) {
 		var form = context.form;
 		var newRecord = context.newRecord;
@@ -87,6 +91,10 @@ define([
 		setRemainingBalance(newRecord);
 	}
 
+	/**
+	 * Before Submit Event
+	 * @param {*} context 
+	 */
 	function beforeSubmit(context) {
 		var newRecord = context.newRecord;
 		try {
@@ -120,10 +128,15 @@ define([
 		marginBalance.beforeSubmit(newRecord);
 	}
 
+	/**
+	 * After Submit Event
+	 * @param {*} context 
+	 */
 	function afterSubmit(context) {
 		var newRecord = context.newRecord;
 		try {
 			salesEffective.update(newRecord.id);
+			marginBalance.updateSalesOrder(newRecord.id, false);
 		} catch (error) {
 			log.error({
 				title: 'Error afterSubmit',
