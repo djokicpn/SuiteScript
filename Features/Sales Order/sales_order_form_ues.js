@@ -10,8 +10,16 @@ define([
 	'./Module/salesEffective',
 	'./Module/discountSoldPriceTaxModule',
 	'N/search',
-	'./Module/marginBalance'
-], function(runtime, salesEffective, discountSoldPriceTaxModule, search, marginBalance) {
+	'./Module/marginBalance',
+	'./Module/billedDate'
+], function(
+	runtime,
+	salesEffective,
+	discountSoldPriceTaxModule,
+	search,
+	marginBalance,
+	billedDate
+) {
 	const SHIPPING_METHODS = {
 		RL_CARRIERS: 'LTL',
 		WILL_CALL: 'Will Call',
@@ -25,7 +33,7 @@ define([
 
 	/**
 	 * Before Load Event
-	 * @param {*} context 
+	 * @param {*} context
 	 */
 	function beforeLoad(context) {
 		var form = context.form;
@@ -93,7 +101,7 @@ define([
 
 	/**
 	 * Before Submit Event
-	 * @param {*} context 
+	 * @param {*} context
 	 */
 	function beforeSubmit(context) {
 		var newRecord = context.newRecord;
@@ -130,13 +138,14 @@ define([
 
 	/**
 	 * After Submit Event
-	 * @param {*} context 
+	 * @param {*} context
 	 */
 	function afterSubmit(context) {
 		var newRecord = context.newRecord;
 		try {
 			salesEffective.update(newRecord.id);
 			marginBalance.updateSalesOrder(newRecord.id, false);
+			billedDate.updateSalesOrder(newRecord.id, false);
 		} catch (error) {
 			log.error({
 				title: 'Error afterSubmit',
@@ -415,10 +424,12 @@ define([
 					columns: ['applyingtransaction']
 				});
 
-				if(listCustomerRefund.run().getRange({
-					start: 0,
-					end: 1000
-				}).length > 0) {
+				if (
+					listCustomerRefund.run().getRange({
+						start: 0,
+						end: 1000
+					}).length > 0
+				) {
 					result = true;
 					return false;
 				}

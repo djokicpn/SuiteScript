@@ -6,7 +6,7 @@
  * @NScriptType UserEventScript
  * @author trungpv <trung@lexor.com>
  */
-define(['N/record', './Module/marginBalance'], function(record, marginBalance) {
+define(['N/record', './Module/marginBalance', './Module/billedDate'], function(record, marginBalance, billedDate) {
 	/**
 	 * Before Submit Event
 	 * @param {*} context 
@@ -41,6 +41,26 @@ define(['N/record', './Module/marginBalance'], function(record, marginBalance) {
 	}
 
 	/**
+	 * beforeSubmit Event
+	 * @param {*} context 
+	 */
+	function beforeSubmit(context) {
+		var newRecord = context.newRecord;
+		try {
+			var trandate = newRecord.getValue('trandate');
+			newRecord.setValue({
+				fieldId: 'custbodybilled_date',
+				value: trandate
+			});
+		} catch (error) {
+			log.error({
+				title: 'beforeSubmit',
+				details: error.message
+			});
+		}
+	}
+
+	/**
 	 * After Submit Event
 	 * @param {*} context 
 	 */
@@ -52,8 +72,10 @@ define(['N/record', './Module/marginBalance'], function(record, marginBalance) {
 				const saleOrderId = invoiceRecord.getValue('createdfrom');
 				if (type === context.UserEventType.DELETE) {
 					marginBalance.updateSalesOrder(saleOrderId, true);
+					billedDate.updateSalesOrder(saleOrderId, true);
 				} else {
 					marginBalance.updateSalesOrder(saleOrderId, false);
+					billedDate.updateSalesOrder(saleOrderId, false);
 				}
 			} catch (error) {
 				log.error({
@@ -66,6 +88,7 @@ define(['N/record', './Module/marginBalance'], function(record, marginBalance) {
 
 	return {
 		beforeLoad: beforeLoad,
+		beforeSubmit: beforeSubmit,
 		afterSubmit: afterSubmit
 	};
 });
