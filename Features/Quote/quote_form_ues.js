@@ -66,6 +66,11 @@ define(['N/runtime', './Module/discountSoldPriceTaxModule', './Module/marginBala
 						details: err.message
 					});
 				}
+				
+				if (isSalesOrder(newRecord)) {
+					var createsalesord = form.getButton('createsalesord');
+					createsalesord.isHidden = true;
+				}
 			}
 
 			discountSoldPriceTaxModule.beforeLoad(context);
@@ -306,6 +311,34 @@ define(['N/runtime', './Module/discountSoldPriceTaxModule', './Module/marginBala
 				details: error.message
 			});
 		}
+	}
+
+	/**
+	 * Check exists Sales Order
+	 * @param {*} newRecord
+	 */
+	function isSalesOrder(newRecord) {
+		var result = false;
+		try {
+			const totalLinks = newRecord.getLineCount({ sublistId: 'links' });
+			for (var index = 0; index < totalLinks; index++) {
+				var typeValue = newRecord.getSublistText({
+					sublistId: 'links',
+					fieldId: 'linkurl',
+					line: index
+				});
+				if (typeValue === '/app/accounting/transactions/salesord.nl?whence=') {
+					result = true;
+					break;
+				}
+			}
+		} catch (error) {
+			log.error({
+				title: 'Error isSalesOrder',
+				details: error.message
+			});
+		}
+		return result;
 	}
 
 	return {
