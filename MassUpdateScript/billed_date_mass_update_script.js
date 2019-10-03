@@ -14,7 +14,7 @@ define(['../Module/billedDate'], function(billedDate) {
 				title: '====> Updating ' + type + ': ' + id,
 				details: '====> Updating ' + type + ': ' + id
 			});
-			billedDate.updateSalesOrder(id, false);
+			billedDate.updateSalesOrderForMassUpdate(id, false);
 			log.debug({
 				title: '[Done] Updated ' + type + ': ' + id,
 				details: '[Done] Updated ' + type + ': ' + id

@@ -75,7 +75,81 @@ define(['N/record'], function(record) {
 		}
 	}
 
+	/**
+	 * update Sales Order for MassUpdate
+	 * @param {*} salesOrderId
+	 */
+	function updateSalesOrderForMassUpdate(salesOrderId, isInvoiceDeleted) {
+		try {
+			var salesOrder = record.load({
+				type: record.Type.SALES_ORDER,
+				id: salesOrderId
+			});
+			const status = salesOrder.getValue('status');
+			if (status === 'Billed' && !isInvoiceDeleted) {
+				// Reset Billed Date
+				salesOrder.setValue({
+					fieldId: 'custbodybilled_date',
+					value: ''
+				});
+				const totalLine = salesOrder.getLineCount({ sublistId: 'links' });
+				for (var index = 0; index < totalLine; index++) {
+					var type = salesOrder.getSublistValue({
+						sublistId: 'links',
+						fieldId: 'type',
+						line: index
+					});
+					if (type === 'Invoice') {
+						var invoiceId = salesOrder.getSublistValue({
+							sublistId: 'links',
+							fieldId: 'id',
+							line: index
+						});
+						var invoice = record.load({
+							type: record.Type.INVOICE,
+							id: invoiceId
+						});
+						var trandate = invoice.getValue('trandate');
+						invoice.setValue({
+							fieldId: 'custbodybilled_date',
+							value: trandate
+						});
+						invoice.save();
+						var billedDate = invoice.getValue('custbodybilled_date');
+						var soBilledDate = salesOrder.getValue('custbodybilled_date');
+						if (soBilledDate) {
+							if (soBilledDate <= billedDate) {
+								salesOrder.setValue({
+									fieldId: 'custbodybilled_date',
+									value: billedDate
+								});
+							}
+						} else {
+							salesOrder.setValue({
+								fieldId: 'custbodybilled_date',
+								value: billedDate
+							});
+						}
+					}
+				}
+			} else {
+				salesOrder.setValue({
+					fieldId: 'custbodybilled_date',
+					value: ''
+				});
+			}
+
+			// salesOrder.save();
+		} catch (error) {
+			log.error({
+				title: '[BILLED_DATE_MODULE] > updateSalesOrder',
+				details: error
+			});
+		}
+	}
+
 	return {
-		updateSalesOrder: updateSalesOrder
+		updateSalesOrder: updateSalesOrder,
+		updateSalesOrderForMassUpdate: updateSalesOrderForMassUpdate
 	};
 });
