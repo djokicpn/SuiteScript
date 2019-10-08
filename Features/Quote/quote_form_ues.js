@@ -41,6 +41,10 @@ define(['N/runtime', './Module/discountSoldPriceTaxModule', './Module/marginBala
 					if (taxrate1Col) {
 						taxrate1Col.updateDisplayType({ displayType: 'hidden' });
 					}
+					var taxcodeCol = item.getField({ id: 'taxcode' });
+					if (taxcodeCol) {
+						taxcodeCol.updateDisplayType({ displayType: 'disabled' });
+					}
 				}
 
 				// Set Default Location
