@@ -24,6 +24,9 @@ define(['N/search', 'N/runtime'], function(search, runtime) {
 	function pageInit(context) {
 		var currentRecord = context.currentRecord;
 		var mode = context.mode;
+		
+		loadDealerName();
+
 		initUI(currentRecord);
 		// Create el inject html page
 		if (window.document) {
@@ -96,8 +99,8 @@ define(['N/search', 'N/runtime'], function(search, runtime) {
 		// 3 Administrator
 		// 1069	Lexor | Sales Director
 		// 1037	Lexor | Sales Manager
-		if (!(role === 3 || role === 1069 || role === 1037 || role ===1049)) {
-		// if (!EXCEPT_ROLES.includes(role)) {
+		if (!(role === 3 || role === 1069 || role === 1037 || role === 1049)) {
+			// if (!EXCEPT_ROLES.includes(role)) {
 			var addr2 = currentRecord.getField({
 				fieldId: 'addr2'
 			});
@@ -135,7 +138,7 @@ define(['N/search', 'N/runtime'], function(search, runtime) {
 			// 1069	Lexor | Sales Director
 			// 1037	Lexor | Sales Manager
 			if (!(role === 3 || role === 1069 || role === 1037)) {
-			// if (!EXCEPT_ROLES.includes(role)) {
+				// if (!EXCEPT_ROLES.includes(role)) {
 				var addrtext = currentRecord.getField({
 					fieldId: 'addrtext'
 				});
@@ -447,6 +450,21 @@ define(['N/search', 'N/runtime'], function(search, runtime) {
 			divAddress.innerHTML = formatStr;
 			listAddressExists.appendChild(divAddress);
 		}
+	}
+
+	/**
+	 * Load Dealer Name
+	 */
+	function loadDealerName() {
+		try {
+			var isperson = parent.nlapiGetFieldValue('isperson');
+			var dealerName = parent.nlapiGetFieldValue('companyname');
+			if (isperson === 'T') {
+				if (nlapiGetFieldValue('addressee') == '') {
+					nlapiSetFieldValue('addressee', dealerName);
+				}
+			}
+		} catch (error) {}
 	}
 
 	/**
