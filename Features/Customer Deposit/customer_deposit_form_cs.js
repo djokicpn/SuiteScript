@@ -22,10 +22,12 @@ define(['N/runtime'], function(runtime) {
 
 			if (context.mode === 'create') {
 				remainingBalance = currentRecord.getValue({ fieldId: 'custbody_remaining_balance' });
-				currentRecord.setValue({
-					fieldId: 'payment',
-					value: remainingBalance
-				});
+				if (remainingBalance) {
+					currentRecord.setValue({
+						fieldId: 'payment',
+						value: remainingBalance
+					});
+				}
 			}
 		} catch (error) {
 			console.log(error);
