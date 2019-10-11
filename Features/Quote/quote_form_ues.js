@@ -5,11 +5,14 @@
  * @NScriptType UserEventScript
  * @author trungpv <trung@lexor.com>
  */
-define(['N/runtime', './Module/discountSoldPriceTaxModule', './Module/marginBalance'], function(
-	runtime,
-	discountSoldPriceTaxModule,
-	marginBalance
-) {
+define([
+	'N/runtime',
+	'./Module/discountSoldPriceTaxModule',
+	'./Module/marginBalance',
+	'N/ui/serverWidget',
+	'N/search',
+	'N/error'
+], function(runtime, discountSoldPriceTaxModule, marginBalance, serverWidget, search, error) {
 	const SHIPPING_METHODS = {
 		RL_CARRIERS: 'LTL',
 		WILL_CALL: 'Will Call',
@@ -23,6 +26,8 @@ define(['N/runtime', './Module/discountSoldPriceTaxModule', './Module/marginBala
 
 	function beforeLoad(context) {
 		try {
+			checkOnlyOneQuoteForCustomer(context);
+
 			var form = context.form;
 			var newRecord = context.newRecord;
 			var item = form.getSublist({ id: 'item' });
@@ -70,7 +75,7 @@ define(['N/runtime', './Module/discountSoldPriceTaxModule', './Module/marginBala
 						details: err.message
 					});
 				}
-				
+
 				if (isSalesOrder(newRecord)) {
 					var createsalesord = form.getButton('createsalesord');
 					createsalesord.isHidden = true;
@@ -87,6 +92,14 @@ define(['N/runtime', './Module/discountSoldPriceTaxModule', './Module/marginBala
 	}
 
 	function beforeSubmit(context) {
+		if (!isQuoteValid(context)) {
+			throw error.create({
+				name: 'LEXOR_ERR_INVALID_DATA',
+				message: 'Another Quote still open.',
+				notifyOff: true
+			});
+		}
+
 		var newRecord = context.newRecord;
 		try {
 			const totalLine = newRecord.getLineCount({ sublistId: 'item' });
@@ -339,6 +352,123 @@ define(['N/runtime', './Module/discountSoldPriceTaxModule', './Module/marginBala
 		} catch (error) {
 			log.error({
 				title: 'Error isSalesOrder',
+				details: error.message
+			});
+		}
+		return result;
+	}
+
+	/**
+	 *
+	 * @param {*} context
+	 */
+	function checkOnlyOneQuoteForCustomer(context) {
+		try {
+			var form = context.form;
+			var newRecord = context.newRecord;
+			var type = context.type;
+			var customer = newRecord.getValue('entity');
+			var quotes = getQuotesByCustomer(customer);
+			if (
+				type === context.UserEventType.CREATE &&
+				customer &&
+				customer != '' &&
+				quotes.length > 0
+			) {
+				// Get data search
+				const isQuoteExistsField = form.addField({
+					id: 'custpage_is_quote_exists',
+					type: serverWidget.FieldType.CHECKBOX,
+					label: ' '
+				});
+				isQuoteExistsField.updateDisplayType({
+					displayType: serverWidget.FieldDisplayType.HIDDEN
+				});
+				isQuoteExistsField.defaultValue = 'T';
+
+				const quotesExistsField = form.addField({
+					id: 'custpage_quote_exists',
+					type: serverWidget.FieldType.LONGTEXT,
+					label: ' '
+				});
+				quotesExistsField.updateDisplayType({
+					displayType: serverWidget.FieldDisplayType.HIDDEN
+				});
+				quotesExistsField.defaultValue = JSON.stringify(quotes);
+			}
+		} catch (error) {
+			log.error({
+				title: 'Error checkOnlyOneQuoteForCustomer',
+				details: error.message
+			});
+		}
+	}
+
+	/**
+	 *
+	 * @param {*} context
+	 */
+	function isQuoteValid(context) {
+		try {
+			var form = context.form;
+			var newRecord = context.newRecord;
+			var type = context.type;
+			var customer = newRecord.getValue('entity');
+			var quotes = getQuotesByCustomer(customer);
+			if (
+				type === context.UserEventType.CREATE &&
+				customer &&
+				customer != '' &&
+				quotes.length > 0
+			) {
+				return false;
+			}
+		} catch (error) {
+			log.error({
+				title: 'Error isQuoteValid',
+				details: error.message
+			});
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * get Quotes By Customer
+	 * @param {*} customerId
+	 */
+	function getQuotesByCustomer(customerId) {
+		var result = [];
+		try {
+			var listQuotes = search.create({
+				type: search.Type.ESTIMATE,
+				filters: [
+					{
+						name: 'entity',
+						operator: search.Operator.IS,
+						values: [customerId]
+					},
+					{
+						name: 'mainline',
+						operator: search.Operator.IS,
+						values: ['T']
+					}
+				],
+				columns: ['internalid', 'status', 'tranid']
+			});
+			listQuotes.run().each(function(item) {
+				if(item.getValue('status') === 'open') {
+					result.push([
+						item.getValue('internalid'),
+						item.getValue('status'),
+						item.getValue('tranid')
+					]);
+				}
+				return true;
+			});
+		} catch (error) {
+			log.error({
+				title: 'Error getQuotesByCustomer',
 				details: error.message
 			});
 		}

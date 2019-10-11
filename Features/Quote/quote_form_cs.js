@@ -10,9 +10,13 @@
 define([
 	'/SuiteScripts/Module/shippingRates',
 	'/SuiteScripts/Module/discountModule',
-	'/SuiteScripts/lib/micromodal.min'
-], function(_ShippingRates, _discountModule, MicroModal) {
+	'/SuiteScripts/lib/micromodal.min',
+	'N/ui/message',
+	'N/url',
+	'N/record'
+], function(_ShippingRates, _discountModule, MicroModal, message, url, record) {
 	/* === VARS === */
+	var errorMsg = false;
 
 	/* === EVENTS FUNCTIONS === */
 
@@ -21,6 +25,7 @@ define([
 	 * @param {*} context
 	 */
 	function pageInit(context) {
+		checkOnlyOneQuoteForCustomer(context);
 		const mode = context.mode;
 		const currentRecord = context.currentRecord;
 		try {
@@ -167,7 +172,7 @@ define([
 			var defaultLocation = currentRecord.getValue({
 				fieldId: 'custbody_set_line_location'
 			});
-          	var defaultLocationDisplay = currentRecord.getText({
+			var defaultLocationDisplay = currentRecord.getText({
 				fieldId: 'custbody_set_line_location'
 			});
 			showLoading(function() {
@@ -251,6 +256,57 @@ define([
 	}
 
 	/**
+	 *
+	 * @param {*} context
+	 */
+	function checkOnlyOneQuoteForCustomer(context) {
+		try {
+			if(errorMsg) {
+				errorMsg.hide();
+			}
+			const currentRecord = context.currentRecord;
+			var isQuoteExists = currentRecord.getValue('custpage_is_quote_exists');
+			var quotesExists = currentRecord.getValue('custpage_quote_exists');
+			console.log(isQuoteExists, quotesExists)
+			if (isQuoteExists && quotesExists) {
+				quotesExists = JSON.parse(quotesExists);
+				var quotesStr = quotesExists.map(function(item) {
+					var quoteURL = url.resolveRecord({
+						recordType: record.Type.ESTIMATE,
+						recordId: item[0]
+					});
+					return '<a href="' + quoteURL + '" target="_blank">' + item[2] + '</a>';
+				});
+				errorMsg = message.create({
+					title: "Can't create new Quote",
+					message: 'Quote: ' + quotesStr.join(', ') + ' still open.',
+					type: message.Type.ERROR
+				});
+
+				errorMsg.show();
+				return true;
+			}
+		} catch (error) {
+			log.error({
+				title: 'Error checkOnlyOneQuoteForCustomer',
+				details: error.message
+			});
+		}
+		return false;
+	}
+
+	/**
+	 * Save Record
+	 * @param {*} context
+	 */
+	function saveRecord(context) {
+		if (checkOnlyOneQuoteForCustomer(context)) {
+			return false;
+		}
+		return true; //Return true if you want to continue saving the record.
+	}
+
+	/**
 	 * Export Events
 	 */
 	var exports = {};
@@ -258,5 +314,6 @@ define([
 	exports.sublistChanged = sublistChanged;
 	exports.validateLine = validateLine;
 	exports.fieldChanged = fieldChanged;
+	exports.saveRecord = saveRecord;
 	return exports;
 });
