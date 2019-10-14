@@ -9,10 +9,15 @@ define([
 	'N/runtime',
 	'./Module/discountSoldPriceTaxModule',
 	'./Module/marginBalance',
-	'N/ui/serverWidget',
-	'N/search',
-	'N/error'
-], function(runtime, discountSoldPriceTaxModule, marginBalance, serverWidget, search, error) {
+	'./Module/oneQuoteForOneCustomer',
+	'N/ui/serverWidget'
+], function(
+	runtime,
+	discountSoldPriceTaxModule,
+	marginBalance,
+	oneQuoteForOneCustomer,
+	serverWidget
+) {
 	const SHIPPING_METHODS = {
 		RL_CARRIERS: 'LTL',
 		WILL_CALL: 'Will Call',
@@ -26,7 +31,8 @@ define([
 
 	function beforeLoad(context) {
 		try {
-			checkOnlyOneQuoteForCustomer(context);
+			// https://trello.com/c/cYmEKul4/211-one-open-quote-for-1-customer
+			oneQuoteForOneCustomer.beforeLoad(context, serverWidget);
 
 			var form = context.form;
 			var newRecord = context.newRecord;
@@ -86,19 +92,14 @@ define([
 		} catch (error) {
 			log.error({
 				title: 'Error beforeLoad',
-				details: error.message
+				details: error
 			});
 		}
 	}
 
 	function beforeSubmit(context) {
-		if (!isQuoteValid(context)) {
-			throw error.create({
-				name: 'LEXOR_ERR_INVALID_DATA',
-				message: 'Another Quote still open.',
-				notifyOff: true
-			});
-		}
+		// https://trello.com/c/cYmEKul4/211-one-open-quote-for-1-customer
+		oneQuoteForOneCustomer.beforeSubmit(context);
 
 		var newRecord = context.newRecord;
 		try {
@@ -352,123 +353,6 @@ define([
 		} catch (error) {
 			log.error({
 				title: 'Error isSalesOrder',
-				details: error.message
-			});
-		}
-		return result;
-	}
-
-	/**
-	 *
-	 * @param {*} context
-	 */
-	function checkOnlyOneQuoteForCustomer(context) {
-		try {
-			var form = context.form;
-			var newRecord = context.newRecord;
-			var type = context.type;
-			var customer = newRecord.getValue('entity');
-			var quotes = getQuotesByCustomer(customer);
-			if (
-				type === context.UserEventType.CREATE &&
-				customer &&
-				customer != '' &&
-				quotes.length > 0
-			) {
-				// Get data search
-				const isQuoteExistsField = form.addField({
-					id: 'custpage_is_quote_exists',
-					type: serverWidget.FieldType.CHECKBOX,
-					label: ' '
-				});
-				isQuoteExistsField.updateDisplayType({
-					displayType: serverWidget.FieldDisplayType.HIDDEN
-				});
-				isQuoteExistsField.defaultValue = 'T';
-
-				const quotesExistsField = form.addField({
-					id: 'custpage_quote_exists',
-					type: serverWidget.FieldType.LONGTEXT,
-					label: ' '
-				});
-				quotesExistsField.updateDisplayType({
-					displayType: serverWidget.FieldDisplayType.HIDDEN
-				});
-				quotesExistsField.defaultValue = JSON.stringify(quotes);
-			}
-		} catch (error) {
-			log.error({
-				title: 'Error checkOnlyOneQuoteForCustomer',
-				details: error.message
-			});
-		}
-	}
-
-	/**
-	 *
-	 * @param {*} context
-	 */
-	function isQuoteValid(context) {
-		try {
-			var form = context.form;
-			var newRecord = context.newRecord;
-			var type = context.type;
-			var customer = newRecord.getValue('entity');
-			var quotes = getQuotesByCustomer(customer);
-			if (
-				type === context.UserEventType.CREATE &&
-				customer &&
-				customer != '' &&
-				quotes.length > 0
-			) {
-				return false;
-			}
-		} catch (error) {
-			log.error({
-				title: 'Error isQuoteValid',
-				details: error.message
-			});
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * get Quotes By Customer
-	 * @param {*} customerId
-	 */
-	function getQuotesByCustomer(customerId) {
-		var result = [];
-		try {
-			var listQuotes = search.create({
-				type: search.Type.ESTIMATE,
-				filters: [
-					{
-						name: 'entity',
-						operator: search.Operator.IS,
-						values: [customerId]
-					},
-					{
-						name: 'mainline',
-						operator: search.Operator.IS,
-						values: ['T']
-					}
-				],
-				columns: ['internalid', 'status', 'tranid']
-			});
-			listQuotes.run().each(function(item) {
-				if(item.getValue('status') === 'open') {
-					result.push([
-						item.getValue('internalid'),
-						item.getValue('status'),
-						item.getValue('tranid')
-					]);
-				}
-				return true;
-			});
-		} catch (error) {
-			log.error({
-				title: 'Error getQuotesByCustomer',
 				details: error.message
 			});
 		}
