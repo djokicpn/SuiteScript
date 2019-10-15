@@ -5,7 +5,7 @@
  * @NScriptType UserEventScript
  * @author trungpv <trung@lexor.com>
  */
-define(['./Module/salesRepModule'], function(salesRepModule) {
+define(['./Module/salesRepModule', './Module/SalesFlow/Main'], function(salesRepModule, salesFlow) {
 	function beforeLoad(context) {
 		try {
 			var form = context.form;
@@ -25,9 +25,27 @@ define(['./Module/salesRepModule'], function(salesRepModule) {
 		salesRepModule.beforeLoad(context);
 	}
 
-	function beforeSubmit(context) {}
+	function beforeSubmit(context) {
+		try {
+			salesFlow.LPC.beforeSubmit(context);
+		} catch (error) {
+			log.error({
+				title: 'beforeSubmit',
+				details: error
+			});
+		}
+	}
 
-	function afterSubmit(context) {}
+	function afterSubmit(context) {
+		try {
+			salesFlow.LPC.afterSubmit(context);
+		} catch (error) {
+			log.error({
+				title: 'afterSubmit',
+				details: error
+			});
+		}
+	}
 
 	return {
 		beforeLoad: beforeLoad,
