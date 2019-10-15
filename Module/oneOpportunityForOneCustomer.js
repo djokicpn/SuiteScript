@@ -17,9 +17,9 @@ define(['N/record', 'N/ui/message', 'N/url', 'N/search', 'N/error'], function(
 	var errorMsg = false;
 
 	/**
-	 * 
-	 * @param {*} context 
-	 * @param {*} serverWidget 
+	 *
+	 * @param {*} context
+	 * @param {*} serverWidget
 	 */
 	function beforeLoad(context, serverWidget) {
 		try {
@@ -33,8 +33,8 @@ define(['N/record', 'N/ui/message', 'N/url', 'N/search', 'N/error'], function(
 	}
 
 	/**
-	 * 
-	 * @param {*} context 
+	 *
+	 * @param {*} context
 	 */
 	function beforeSubmit(context) {
 		if (!isOpportunityValid(context)) {
@@ -47,9 +47,9 @@ define(['N/record', 'N/ui/message', 'N/url', 'N/search', 'N/error'], function(
 	}
 
 	/**
-	 * 
-	 * @param {*} context 
-	 * @param {*} serverWidget 
+	 *
+	 * @param {*} context
+	 * @param {*} serverWidget
 	 */
 	function checkOnlyOneOpportunityForCustomer(context, serverWidget) {
 		try {
@@ -112,11 +112,10 @@ define(['N/record', 'N/ui/message', 'N/url', 'N/search', 'N/error'], function(
 				columns: ['internalid', 'status', 'tranid']
 			});
 			listOpportunities.run().each(function(item) {
-				log.error({
-					title: 'item',
-					details: item
-				});
-				if (item.getValue('status') === 'inProgress') {
+				if (
+					item.getValue('status') === 'inProgress' ||
+					item.getValue('status') === 'issuedEstimate'
+				) {
 					result.push([
 						item.getValue('internalid'),
 						item.getValue('status'),
@@ -187,7 +186,7 @@ define(['N/record', 'N/ui/message', 'N/url', 'N/search', 'N/error'], function(
 				});
 				errorMsg = message.create({
 					title: "Can't create new Opportunity",
-					message: 'Opportunities: ' + opportunitiesStr.join(', ') + ' still open.',
+					message: 'Opportunity: ' + opportunitiesStr.join(', ') + ' still open.',
 					type: message.Type.ERROR
 				});
 
