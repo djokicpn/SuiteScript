@@ -16,6 +16,8 @@ define(['./Module/salesRepModule', './Module/SalesFlow/Main'], function(salesRep
 					labelCol.updateDisplayType({ displayType: 'disabled' });
 				}
 			}
+
+			salesFlow.LPC.beforeLoad(context);
 		} catch (error) {
 			log.error({
 				title: 'Error beforeLoad',

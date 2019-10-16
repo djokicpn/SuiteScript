@@ -5,12 +5,59 @@
  * @NModuleScope Public
  * @author trungpv <trung@lexor.com>
  */
-define(['N/record'], function(record) {
+define(['N/record', 'N/redirect', 'N/ui/serverWidget'], function(record, redirect, serverWidget) {
 	const ACTIVE = true;
-	const MODULE_NAME = '/SuiteScript/Module/SalesFlow/LeadProspectCustomer.js';
+	const MODULE_NAME = '/SuiteScripts/Module/SalesFlow/LeadProspectCustomer.js';
+
+	/**
+	 * ACTIVE MODULE
+	 */
+	const ACTIVE_LOCK_LEAD = true;
+
+	/**
+	 * beforeLoad
+	 * User Event Script
+	 * @param {*} context
+	 */
+	function beforeLoad(context) {
+		if (ACTIVE) {
+			try {
+				var type = context.type;
+				var newRecord = context.newRecord;
+
+				// Locked Record
+				if (isLockLead(newRecord)) {
+					if (type === context.UserEventType.EDIT) {
+						redirect.toRecord({
+							type: record.Type.LEAD,
+							id: newRecord.id,
+							parameters: {}
+						});
+					}
+
+					if (type == context.UserEventType.VIEW) {
+						// context.form.clientScriptModulePath = 'SuiteScripts/Module/SalesFlow/LockedMessage.js';
+						var inline = context.form.addField({
+							id: 'custpage_trigger_it',
+							label: ' ',
+							type: serverWidget.FieldType.INLINEHTML
+						});
+						inline.defaultValue =
+							"<script>jQuery(function($){ require(['/SuiteScripts/Module/SalesFlow/LockedMessage.js'], function(lockedMessage){ console.log('loaded'); lockedMessage.show();});});</script>";
+					}
+				}
+			} catch (error) {
+				log.error({
+					title: '[' + MODULE_NAME + '] > beforeLoad',
+					details: error
+				});
+			}
+		}
+	}
 
 	/**
 	 * beforeSubmit
+	 * User Event Script
 	 * @param {*} context
 	 */
 	function beforeSubmit(context) {
@@ -27,6 +74,7 @@ define(['N/record'], function(record) {
 
 	/**
 	 * afterSubmit
+	 * User Event Script
 	 * @param {*} context
 	 */
 	function afterSubmit(context) {
@@ -34,7 +82,7 @@ define(['N/record'], function(record) {
 			try {
 				var newRecord = context.newRecord;
 				var type = context.type;
-				if (type === context.UserEventType.CREATE || type === context.UserEventType.EDIT) {
+				if (type === context.UserEventType.CREATE) {
 					updateDate(newRecord.id);
 					// changeStatusToLEADUnqualified(newRecord);
 				}
@@ -87,24 +135,135 @@ define(['N/record'], function(record) {
 	}
 
 	/**
+	 * Update Date From Now
+	 * @param {*} id
+	 */
+	function updateDateFromNow(id) {
+		if (ACTIVE) {
+			try {
+				var currentRecord = record.load({
+					type: record.Type.LEAD,
+					id: id
+				});
+				if (currentRecord) {
+					var datecreated = new Date();
+					currentRecord.setValue({
+						fieldId: 'custentity_start_date',
+						value: datecreated
+					});
+					var extend = currentRecord.getValue('custentity_extend');
+					extend = extend > 0 ? extend : 0;
+					var expirationDate = addDays(datecreated, extend + 30);
+					currentRecord.setValue({
+						fieldId: 'custentity_expiration_date',
+						value: expirationDate
+					});
+					currentRecord.setValue({
+						fieldId: 'custentity_extend',
+						value: extend
+					});
+					currentRecord.save();
+				}
+			} catch (error) {
+				log.error({
+					title: '[' + MODULE_NAME + '] > updateDate',
+					details: error
+				});
+			}
+		}
+	}
+
+	/**
 	 * Reset Sales Team
 	 * @param {*} currentRecord
 	 */
 	function resetSalesTeam(currentRecord) {
-		try {
-			const totalLine = currentRecord.getLineCount({ sublistId: 'salesteam' });
-			for (var line = 0; line < totalLine; line++) {
-				currentRecord.removeLine({
-					sublistId: 'salesteam',
-					line: line,
-					ignoreRecalc: true
+		if (ACTIVE) {
+			try {
+				const totalLine = currentRecord.getLineCount({ sublistId: 'salesteam' });
+				for (var line = 0; line < totalLine; line++) {
+					currentRecord.removeLine({
+						sublistId: 'salesteam',
+						line: line,
+						ignoreRecalc: true
+					});
+				}
+			} catch (error) {
+				log.error({
+					title: '[' + MODULE_NAME + '] > resetSalesTeam',
+					details: error
 				});
 			}
-		} catch (error) {
-			log.error({
-				title: '[' + MODULE_NAME + '] > resetSalesTeam',
-				details: error
-			});
+		}
+	}
+
+	/**
+	 * Reset LEAD By Id
+	 * @param {*} id
+	 */
+	function resetById(id) {
+		if (ACTIVE) {
+			try {
+				var currentRecord = record.load({
+					type: record.Type.LEAD,
+					id: id
+				});
+				if (currentRecord) {
+					currentRecord.setValue({
+						fieldId: 'custentity_start_date',
+						value: ''
+					});
+					currentRecord.setValue({
+						fieldId: 'custentity_expiration_date',
+						value: ''
+					});
+					currentRecord.setValue({
+						fieldId: 'custentity_extend',
+						value: 0
+					});
+					// Reset Sales Team
+					resetSalesTeam(currentRecord);
+					currentRecord.save();
+				}
+			} catch (error) {
+				log.error({
+					title: '[' + MODULE_NAME + '] > resetById',
+					details: error
+				});
+			}
+		}
+	}
+
+	/**
+	 *
+	 * @param {*} currentRecord
+	 */
+	function reset(currentRecord) {
+		if (ACTIVE) {
+			try {
+				if (currentRecord) {
+					currentRecord.setValue({
+						fieldId: 'custentity_start_date',
+						value: ''
+					});
+					currentRecord.setValue({
+						fieldId: 'custentity_expiration_date',
+						value: ''
+					});
+					currentRecord.setValue({
+						fieldId: 'custentity_extend',
+						value: 0
+					});
+					// Reset Sales Team
+					resetSalesTeam(currentRecord);
+					currentRecord.save();
+				}
+			} catch (error) {
+				log.error({
+					title: '[' + MODULE_NAME + '] > resetById',
+					details: error
+				});
+			}
 		}
 	}
 
@@ -120,62 +279,75 @@ define(['N/record'], function(record) {
 	}
 
 	/**
-	 * Diff date with Now
-	 * @param {*} date
+	 * Change Status to Lead-Unqualified By Id
+	 * @param {*} id
 	 */
-	function diffNow(date) {
-		var now = new Date();
-		if (date instanceof Date) {
-			var ms = now - date;
-			var diff = {};
-
-			for (diff.years = 0; ms >= 31536000000; diff.years++, ms -= 31536000000);
-			for (diff.months = 0; ms >= 2628000000; diff.months++, ms -= 2628000000);
-			for (diff.days = 0; ms >= 86400000; diff.days++, ms -= 86400000);
-			for (diff.hours = 0; ms >= 3600000; diff.hours++, ms -= 3600000);
-			for (diff.minutes = 0; ms >= 60000; diff.minutes++, ms -= 60000);
-			for (diff.seconds = 0; ms >= 1000; diff.seconds++, ms -= 1000);
-			diff.milliseconds = ms;
-
-			return diff;
+	function changeStatusLeadUnqualifiedById(id) {
+		if (ACTIVE) {
+			try {
+				var currentRecord = record.load({
+					type: record.Type.LEAD,
+					id: id
+				});
+				if (currentRecord) {
+					currentRecord.setValue({
+						fieldId: 'entitystatus',
+						value: 7 // Lead-Unqualified
+					});
+					currentRecord.setValue({
+						fieldId: 'custentity_start_date',
+						value: ''
+					});
+					currentRecord.setValue({
+						fieldId: 'custentity_expiration_date',
+						value: ''
+					});
+					currentRecord.setValue({
+						fieldId: 'custentity_extend',
+						value: 0
+					});
+					// Reset Sales Team
+					resetSalesTeam(currentRecord);
+					currentRecord.save();
+				}
+			} catch (error) {
+				log.error({
+					title: '[' + MODULE_NAME + '] > resetById',
+					details: error
+				});
+			}
 		}
-
-		return false;
 	}
 
 	/**
-	 * Change Status To LEAD-Unqualified
+	 * Is Lock LEAD
 	 * @param {*} currentRecord
 	 */
-	function changeStatusToLEADUnqualified(currentRecord) {
+	function isLockLead(currentRecord) {
+		if (!ACTIVE_LOCK_LEAD) {
+			return false;
+		}
 		try {
-			// entitystatus
-			var entitystatus = currentRecord.getValue('entitystatus');
-			if (entitystatus == 6) {
-				var startDate = currentRecord.getValue('custentity_start_date');
-				log.error({
-					title: '[' + MODULE_NAME + '] > startDate',
-					details: startDate
-				});
-				var diffDate = diffNow(startDate);
-				if (diffDate) {
-					log.error({
-						title: '[' + MODULE_NAME + '] > changeStatusToLEADUnqualified',
-						details: diffDate
-					});
-				}
+			var salesrep = currentRecord.getValue('salesrep');
+			if (salesrep == '') {
+				return true;
 			}
 		} catch (error) {
 			log.error({
-				title: '[' + MODULE_NAME + '] > changeStatusToLEADUnqualified',
+				title: '[' + MODULE_NAME + '] > isLockLead',
 				details: error
 			});
 		}
+		return false;
 	}
 
 	return {
 		updateDate: updateDate,
+		updateDateFromNow: updateDateFromNow,
 		resetSalesTeam: resetSalesTeam,
+		resetById: resetById,
+		changeStatusLeadUnqualifiedById: changeStatusLeadUnqualifiedById,
+		beforeLoad: beforeLoad,
 		beforeSubmit: beforeSubmit,
 		afterSubmit: afterSubmit
 	};
