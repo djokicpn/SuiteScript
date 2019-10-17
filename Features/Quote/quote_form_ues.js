@@ -10,13 +10,15 @@ define([
 	'./Module/discountSoldPriceTaxModule',
 	'./Module/marginBalance',
 	'./Module/oneQuoteForOneCustomer',
-	'N/ui/serverWidget'
+	'N/ui/serverWidget',
+	'./Module/SalesFlow/Main'
 ], function(
 	runtime,
 	discountSoldPriceTaxModule,
 	marginBalance,
 	oneQuoteForOneCustomer,
-	serverWidget
+	serverWidget,
+	salesFlow
 ) {
 	const SHIPPING_METHODS = {
 		RL_CARRIERS: 'LTL',
@@ -33,6 +35,8 @@ define([
 		try {
 			// https://trello.com/c/cYmEKul4/211-one-open-quote-for-1-customer
 			oneQuoteForOneCustomer.beforeLoad(context, serverWidget);
+
+			salesFlow.Q.beforeLoad(context);
 
 			var form = context.form;
 			var newRecord = context.newRecord;
@@ -78,7 +82,7 @@ define([
 				} catch (err) {
 					log.error({
 						title: 'Error buildTableTotalWeight',
-						details: err.message
+						details: err
 					});
 				}
 
@@ -100,6 +104,8 @@ define([
 	function beforeSubmit(context) {
 		// https://trello.com/c/cYmEKul4/211-one-open-quote-for-1-customer
 		oneQuoteForOneCustomer.beforeSubmit(context);
+
+		salesFlow.Q.beforeSubmit(context);
 
 		var newRecord = context.newRecord;
 		try {
@@ -126,14 +132,27 @@ define([
 		} catch (error) {
 			log.error({
 				title: 'Error updateTotalWeightByLocation',
-				details: error.message
+				details: error
 			});
 		}
 		discountSoldPriceTaxModule.beforeSubmit(newRecord);
 		marginBalance.beforeSubmit(newRecord);
 	}
 
-	function afterSubmit(context) {}
+	/**
+	 * afterSubmit
+	 * @param {*} context
+	 */
+	function afterSubmit(context) {
+		try {
+			salesFlow.Q.afterSubmit(context);
+		} catch (error) {
+			log.error({
+				title: 'Error afterSubmit',
+				details: error
+			});
+		}
+	}
 
 	/** HEPPER FUNCTIONS **/
 	/**
@@ -326,7 +345,7 @@ define([
 		} catch (error) {
 			log.error({
 				title: 'Error shippingDiscountByTheManager',
-				details: error.message
+				details: error
 			});
 		}
 	}
@@ -353,7 +372,7 @@ define([
 		} catch (error) {
 			log.error({
 				title: 'Error isSalesOrder',
-				details: error.message
+				details: error
 			});
 		}
 		return result;

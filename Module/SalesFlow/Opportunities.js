@@ -9,15 +9,13 @@ define([
 	'N/record',
 	'N/redirect',
 	'N/ui/serverWidget',
-	'/SuiteScripts/Module/SalesFlow/LeadProspectCustomer'
-], function(record, redirect, serverWidget, leadProspectCustomer) {
+	'/SuiteScripts/Module/SalesFlow/LeadProspectCustomer',
+	'/SuiteScripts/Module/SalesFlow/Quotes'
+], function(record, redirect, serverWidget, leadProspectCustomer, quotes) {
 	const ACTIVE = true;
 	const MODULE_NAME = '/SuiteScripts/Module/SalesFlow/Opportunities.js';
-
-	/**
-	 * ACTIVE MODULE
-	 */
-	const ACTIVE_LOCK_OPPORTUNITY = true;
+	const ACTIVE_LOCK = true;
+	const ACTIVE_CLOSE = true;
 
 	/**
 	 * beforeLoad
@@ -31,7 +29,7 @@ define([
 				var newRecord = context.newRecord;
 
 				// Locked Record
-				if (isLockOpportunity(newRecord)) {
+				if (isLockOpportunity(newRecord) || isCloseOpportunity(newRecord)) {
 					if (type === context.UserEventType.EDIT) {
 						redirect.toRecord({
 							type: record.Type.OPPORTUNITY,
@@ -41,14 +39,25 @@ define([
 					}
 
 					if (type == context.UserEventType.VIEW) {
-						// context.form.clientScriptModulePath = 'SuiteScripts/Module/SalesFlow/LockedMessage.js';
-						var inline = context.form.addField({
-							id: 'custpage_trigger_it',
-							label: ' ',
-							type: serverWidget.FieldType.INLINEHTML
-						});
-						inline.defaultValue =
-							"<script>jQuery(function($){ require(['/SuiteScripts/Module/SalesFlow/LockedMessage.js'], function(lockedMessage){ console.log('loaded'); lockedMessage.show();});});</script>";
+						if (isLockOpportunity(newRecord)) {
+							var inline = context.form.addField({
+								id: 'custpage_trigger_it',
+								label: ' ',
+								type: serverWidget.FieldType.INLINEHTML
+							});
+							inline.defaultValue =
+								"<script>jQuery(function($){ require(['/SuiteScripts/Module/SalesFlow/LockedMessage.js'], function(lockedMessage){ lockedMessage.show();});});</script>";
+						}
+
+						if (isCloseOpportunity(newRecord)) {
+							var inline = context.form.addField({
+								id: 'custpage_trigger_it',
+								label: ' ',
+								type: serverWidget.FieldType.INLINEHTML
+							});
+							inline.defaultValue =
+								"<script>jQuery(function($){ require(['/SuiteScripts/Module/SalesFlow/ClosedMessage.js'], function(lockedMessage){ lockedMessage.show();});});</script>";
+						}
 					}
 				}
 			} catch (error) {
@@ -121,8 +130,10 @@ define([
 				// Update CUSTOMER
 				var entity = newRecord.getValue('entity');
 				if (entity) {
-					leadProspectCustomer.resetById(entity);
+					leadProspectCustomer.changeStatusLeadUnqualifiedById(entity);
 				}
+				// Update Quote
+				closeQuotesOpen(newRecord);
 			}
 		} catch (error) {
 			log.error({
@@ -145,15 +156,15 @@ define([
 				});
 				if (currentRecord) {
 					currentRecord.setValue({
-						fieldId: 'custentity_start_date',
+						fieldId: 'custbody_start_date',
 						value: ''
 					});
 					currentRecord.setValue({
-						fieldId: 'custentity_expiration_date',
+						fieldId: 'custbody_expiration_date',
 						value: ''
 					});
 					currentRecord.setValue({
-						fieldId: 'custentity_extend',
+						fieldId: 'custbody_extends',
 						value: 0
 					});
 					// Reset Sales Team
@@ -220,6 +231,9 @@ define([
 								type: record.Type.CUSTOMER,
 								id: entity
 							});
+							startDate = customer.getValue('custentity_start_date');
+							extend = customer.getValue('custentity_extend');
+							expirationDate = customer.getValue('custentity_expiration_date');
 						}
 
 						currentRecord.setValue({
@@ -282,7 +296,7 @@ define([
 				}
 			} catch (error) {
 				log.error({
-					title: '[' + MODULE_NAME + '] > resetById',
+					title: '[' + MODULE_NAME + '] > changeStatusToClosedLostById',
 					details: error
 				});
 			}
@@ -294,14 +308,13 @@ define([
 	 * @param {*} currentRecord
 	 */
 	function isLockOpportunity(currentRecord) {
-		if (!ACTIVE_LOCK_OPPORTUNITY) {
+		if (!ACTIVE_LOCK) {
 			return false;
 		}
 		try {
 			var entitystatus = currentRecord.getValue('entitystatus');
-      const estimates = currentRecord.getLineCount({ sublistId: 'estimates' });
-			// {"value":"14","text":"Closed Lost"},{"value":"16","text":"Lost Customer"}
-			if (entitystatus == 14 || entitystatus == 16 || estimates > 0) {
+			const estimates = currentRecord.getLineCount({ sublistId: 'estimates' });
+			if (entitystatus != 14 && entitystatus != 16 && estimates > 0) {
 				return true;
 			}
 		} catch (error) {
@@ -311,6 +324,60 @@ define([
 			});
 		}
 		return false;
+	}
+
+	/**
+	 * Is Close Opportunity
+	 * @param {*} currentRecord
+	 */
+	function isCloseOpportunity(currentRecord) {
+		if (!ACTIVE_CLOSE) {
+			return false;
+		}
+		try {
+			var entitystatus = currentRecord.getValue('entitystatus');
+			var status = currentRecord.getValue('status');
+			// {"value":"14","text":"Closed Lost"},{"value":"16","text":"Lost Customer"}
+			if (entitystatus == 14 || entitystatus == 16) {
+				// if (status === 'Closed - Lost') {
+				return true;
+			}
+		} catch (error) {
+			log.error({
+				title: '[' + MODULE_NAME + '] > isLockOpportunity',
+				details: error
+			});
+		}
+		return false;
+	}
+
+	/**
+	 * close Quotes Open
+	 * @param {*} currentRecord
+	 */
+	function closeQuotesOpen(currentRecord) {
+		try {
+			const estimates = currentRecord.getLineCount({ sublistId: 'estimates' });
+			for (var index = 0; index < estimates; index++) {
+				var id = currentRecord.getSublistValue({
+					sublistId: 'estimates',
+					fieldId: 'id',
+					line: index
+				});
+				var quote = record.load({
+					type: record.Type.ESTIMATE,
+					id: id
+				});
+				if (quote) {
+					quotes.changeStatusToClosedLostById(id);
+				}
+			}
+		} catch (error) {
+			log.error({
+				title: '[' + MODULE_NAME + '] > getQuotesOpen',
+				details: error
+			});
+		}
 	}
 
 	return {

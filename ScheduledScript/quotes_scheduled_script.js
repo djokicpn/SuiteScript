@@ -1,5 +1,5 @@
 /**
- * Opportunities Scheduled Script
+ * Quotes Scheduled Script
  *
  * @NApiVersion 2.x
  * @NScriptType ScheduledScript
@@ -15,7 +15,7 @@ define(['N/search', '/SuiteScripts/Module/SalesFlow/Main'], function(search, sal
 	function execute(context) {
 		try {
 			var listLeads = search.create({
-				type: search.Type.OPPORTUNITY,
+				type: search.Type.ESTIMATE,
 				// filters: [
 				// 	{
 				// 		name: 'entitystatus',
@@ -28,11 +28,15 @@ define(['N/search', '/SuiteScripts/Module/SalesFlow/Main'], function(search, sal
 			listLeads.run().each(function(item) {
 				var expirationDate = item.getValue('custbody_expiration_date');
 				var entity = item.getValue('entity');
+				var opportunity = item.getValue('opportunity');
 				var entitystatus = item.getValue('entitystatus');
-				if (entitystatus != '14' && entitystatus != '16') {
+				if (entitystatus != '14' && entitystatus != '13') {
 					var isExpired = isToday(new Date(expirationDate));
 					if (isExpired) {
-						salesFlow.O.changeStatusToClosedLostById(item.id);
+						salesFlow.Q.changeStatusToClosedLostById(item.id);
+						if (opportunity) {
+							salesFlow.O.changeStatusToClosedLostById(opportunity);
+						}
 						salesFlow.LPC.changeStatusLeadUnqualifiedById(entity);
 					}
 				}

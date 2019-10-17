@@ -5,7 +5,14 @@
  * @NModuleScope Public
  * @author trungpv <trung@lexor.com>
  */
-define(['N/record', 'N/redirect', 'N/ui/serverWidget'], function(record, redirect, serverWidget) {
+define([
+	'N/record',
+	'N/redirect',
+	'N/ui/serverWidget',
+	'N/search',
+	'/SuiteScripts/Module/SalesFlow/Quotes',
+	'/SuiteScripts/Module/SalesFlow/Opportunities'
+], function(record, redirect, serverWidget, search, quotes, opportunities) {
 	const ACTIVE = true;
 	const MODULE_NAME = '/SuiteScripts/Module/SalesFlow/LeadProspectCustomer.js';
 
@@ -44,6 +51,14 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget'], function(record, redirec
 						});
 						inline.defaultValue =
 							"<script>jQuery(function($){ require(['/SuiteScripts/Module/SalesFlow/LockedMessage.js'], function(lockedMessage){ console.log('loaded'); lockedMessage.show();});});</script>";
+
+						var script =
+							"window.location.replace(nlapiResolveURL('SUITELET', 'customscript_unlock_customer_suitelet', 'customdeploy_unlock_customer_suitelet') + '&id=' + nlapiGetRecordId() + '&type=' + nlapiGetRecordType());";
+						context.form.addButton({
+							id: 'custpage_unlock_record',
+							label: 'Unlock Record',
+							functionName: script
+						});
 					}
 				}
 			} catch (error) {
@@ -84,7 +99,9 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget'], function(record, redirec
 				var type = context.type;
 				if (type === context.UserEventType.CREATE) {
 					updateDate(newRecord.id);
-					// changeStatusToLEADUnqualified(newRecord);
+				}
+				if (type !== context.UserEventType.DELETE) {
+					whenCloseCustomer(context);
 				}
 			} catch (error) {
 				log.error({
@@ -92,6 +109,34 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget'], function(record, redirec
 					details: error
 				});
 			}
+		}
+	}
+
+	/**
+	 * When User Close Customer
+	 *
+	 * @param {*} context
+	 */
+	function whenCloseCustomer(context) {
+		try {
+			var newRecord = context.newRecord;
+			var entitystatus = newRecord.getValue('entitystatus');
+			// {"value":"7","text":"LEAD-Unqualified"}
+			// {"value":"14","text":"PROSPECT-Closed Lost"},{"value":"16","text":"CUSTOMER-Lost Customer"}
+			if (entitystatus == 7 || entitystatus == 14 || entitystatus == 16) {
+				// Update Customer
+				var id = newRecord.id;
+				resetById(id);
+				// Update OPP
+				closeOpportunitiesOpenByCustomerId(id);
+				// Update Quote
+				closeQuotesOpenByCustomerId(id);
+			}
+		} catch (error) {
+			log.error({
+				title: '[' + MODULE_NAME + '] > whenCloseOpportunity',
+				details: error
+			});
 		}
 	}
 
@@ -339,6 +384,76 @@ define(['N/record', 'N/redirect', 'N/ui/serverWidget'], function(record, redirec
 			});
 		}
 		return false;
+	}
+
+	/**
+	 *
+	 * @param {*} customerId
+	 */
+	function closeOpportunitiesOpenByCustomerId(customerId) {
+		try {
+			var listOpportunities = search.create({
+				type: search.Type.OPPORTUNITY,
+				filters: [
+					{
+						name: 'entity',
+						operator: search.Operator.IS,
+						values: [customerId]
+					}
+				],
+				columns: ['internalid', 'status', 'tranid']
+			});
+			listOpportunities.run().each(function(item) {
+				if (
+					item.getValue('status') === 'inProgress' ||
+					item.getValue('status') === 'issuedEstimate'
+				) {
+					opportunities.changeStatusToClosedLostById(item.getValue('internalid'));
+				}
+				return true;
+			});
+		} catch (error) {
+			log.error({
+				title: '[' + MODULE_NAME + '] > closeOpportunitiesOpenByCustomerId',
+				details: error
+			});
+		}
+	}
+
+	/**
+	 * close Quotes Open By CustomerId
+	 * @param {*} customerId
+	 */
+	function closeQuotesOpenByCustomerId(customerId) {
+		try {
+			var listQuotes = search.create({
+				type: search.Type.ESTIMATE,
+				filters: [
+					{
+						name: 'entity',
+						operator: search.Operator.IS,
+						values: [customerId]
+					},
+					{
+						name: 'mainline',
+						operator: search.Operator.IS,
+						values: ['T']
+					}
+				],
+				columns: ['internalid', 'status', 'tranid']
+			});
+			listQuotes.run().each(function(item) {
+				if (item.getValue('status') === 'open') {
+					quotes.changeStatusToClosedLostById(item.getValue('internalid'));
+				}
+				return true;
+			});
+		} catch (error) {
+			log.error({
+				title: '[' + MODULE_NAME + '] > closeQuotesOpenByCustomerId',
+				details: error
+			});
+		}
 	}
 
 	return {
