@@ -72,9 +72,16 @@ define(['N/record', 'N/search'], function(record, search) {
 									var custbody_date_deposited = item.getValue('custbody_date_deposited');
 									var paymentReceived = item.getValue('custbody65');
 									var dateReceived = item.getValue('custbody66');
-									if (paymentReceived && status !== 'unapprovedPayment' && !isRefund(item.id)) {
+									if (paymentReceived && status !== 'unapprovedPayment') {
 										var totalValue = item.getValue('amount');
-										totalDeposited = parseFloat(totalDeposited) + parseFloat(totalValue);
+										var refund = isRefund(item.id);
+										if (refund) {
+											totalDeposited =
+												parseFloat(totalDeposited) + parseFloat(totalValue) - parseFloat(refund);
+										} else {
+											totalDeposited = parseFloat(totalDeposited) + parseFloat(totalValue);
+										}
+										
 										if (totalDeposited > 0) {
 											customerDepositGreaterThanZero = true;
 										}
@@ -121,6 +128,7 @@ define(['N/record', 'N/search'], function(record, search) {
 	 */
 	function isRefund(customerDepositId) {
 		var result = false;
+		var totalRefund = 0;
 		try {
 			var listDepositApplication = search.create({
 				type: search.Type.DEPOSIT_APPLICATION,
@@ -143,18 +151,13 @@ define(['N/record', 'N/search'], function(record, search) {
 							values: [item.id]
 						}
 					],
-					columns: ['applyingtransaction']
+					columns: ['applyingtransaction', 'amount']
 				});
 
-				if (
-					listCustomerRefund.run().getRange({
-						start: 0,
-						end: 1000
-					}).length > 0
-				) {
-					result = true;
-					return false;
-				}
+				listCustomerRefund.run().each(function(refund) {
+					totalRefund += parseFloat(refund.getValue('amount'));
+					return true;
+				});
 				return true;
 			});
 		} catch (error) {
@@ -162,6 +165,9 @@ define(['N/record', 'N/search'], function(record, search) {
 				title: '[ERROR] isRefund',
 				details: error
 			});
+		}
+		if (totalRefund > 0) {
+			return totalRefund;
 		}
 		return result;
 	}
