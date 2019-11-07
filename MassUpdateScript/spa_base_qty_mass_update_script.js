@@ -10,15 +10,7 @@ define(['../Module/spaBaseQty'], function(spaBaseQty) {
 		const type = context.type;
 		const id = context.id;
 		try {
-			log.error({
-				title: '====> Updating ' + type + ': ' + id,
-				details: '[Done] Updated ' + type + ': ' + id
-			});
 			spaBaseQty.updateSalesOrderForMassUpdate(id);
-			log.error({
-				title: '[Done] Updated ' + type + ': ' + id,
-				details: '[Done] Updated ' + type + ': ' + id
-			});
 		} catch (error) {
 			log.error({
 				title: '[Error] Update ' + type + ': ' + id,

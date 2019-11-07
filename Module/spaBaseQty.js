@@ -34,7 +34,7 @@ define(['N/record'], function(record) {
 						// 45	Lexor.
 						// 46	PSD.
 						if (classes == 45 || classes == 46) {
-							spaBaseQty = spaBaseQty + qty;
+							spaBaseQty = parseInt(spaBaseQty) + parseInt(qty);
 						}
 					}
 				} catch (error) {
@@ -46,7 +46,7 @@ define(['N/record'], function(record) {
 			}
 			newRecord.setValue({
 				fieldId: 'custbody_spa_base_qty',
-				value: spaBaseQty
+				value: parseInt(spaBaseQty)
 			});
 		} catch (error) {
 			log.error({
@@ -90,7 +90,7 @@ define(['N/record'], function(record) {
 							// 45	Lexor.
 							// 46	PSD.
 							if (classes == 45 || classes == 46) {
-								spaBaseQty = spaBaseQty + qty;
+								spaBaseQty = parseInt(spaBaseQty) + parseInt(qty);
 							}
 						}
 					} catch (error) {
@@ -102,7 +102,7 @@ define(['N/record'], function(record) {
 				}
 				salesOrder.setValue({
 					fieldId: 'custbody_spa_base_qty',
-					value: spaBaseQty
+					value: parseInt(spaBaseQty)
 				});
 				salesOrder.save();
 			} else {

@@ -11,14 +11,16 @@ define([
 	'./Module/discountSoldPriceTaxModule',
 	'N/search',
 	'./Module/marginBalance',
-	'./Module/billedDate'
+	'./Module/billedDate',
+	'./Module/spaBaseQty'
 ], function(
 	runtime,
 	salesEffective,
 	discountSoldPriceTaxModule,
 	search,
 	marginBalance,
-	billedDate
+	billedDate,
+	spaBaseQty
 ) {
 	const SHIPPING_METHODS = {
 		RL_CARRIERS: 'LTL',
@@ -134,6 +136,13 @@ define([
 		}
 		discountSoldPriceTaxModule.beforeSubmit(newRecord);
 		marginBalance.beforeSubmit(newRecord);
+
+		if (
+			context.type === context.UserEventType.CREATE ||
+			context.type === context.UserEventType.EDIT
+		) {
+			spaBaseQty.beforeSubmit(newRecord);
+		}
 	}
 
 	/**
