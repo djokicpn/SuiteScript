@@ -48,9 +48,9 @@ define([], function() {
     };
     var GoogleAPI = document.createElement("script");
     GoogleAPI.src =
-      "https://maps.googleapis.com/maps/api/js?key=***REMOVED***&libraries=places";
+      "https://maps.googleapis.com/maps/api/js?key=xxx&libraries=places";
     GoogleAPI.id =
-      "https://maps.googleapis.com/maps/api/js?key=***REMOVED***&libraries=places";
+      "https://maps.googleapis.com/maps/api/js?key=xxx&libraries=places";
     document.body.appendChild(GoogleAPI);
 
     document.getElementById("custentity_enter_address").onclick = function() {

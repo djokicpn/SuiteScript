@@ -13,11 +13,11 @@ define(['N/https', 'N/search', 'N/xml', '/SuiteScripts/Module/Utils'], function(
 ) {
 	/** VARS **/
 	const ADDITIONAL_FEES = 10; // 10%
-	const API_KEY = '***REMOVED***';
+	const API_KEY = 'xxx';
 
-	const USERNAME = '***REMOVED***';
-	const PASSWORD = '***REMOVED***';
-	const CUS_ACCOUNT = '***REMOVED***';
+	const USERNAME = 'xxx';
+	const PASSWORD = 'xxx';
+	const CUS_ACCOUNT = 'xxx';
 
 	/**
 	 * POST

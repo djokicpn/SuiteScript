@@ -13,7 +13,7 @@ define(["N/https", "N/search", "N/xml", "/SuiteScripts/Module/Utils"], function(
 ) {
   /** VARS **/
   const ADDITIONAL_FEES = 10; // 10%
-  const API_KEY = "***REMOVED***";
+  const API_KEY = "xxx";
 
   /**
    * POST

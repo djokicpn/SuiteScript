@@ -11,9 +11,9 @@ define(["N/https", "N/search", "/SuiteScripts/Module/Utils"], function(
   _U
 ) {
   /** VARS **/
-  const USERNAME = "***REMOVED***";
-  const PASSWORD = "***REMOVED***";
-  const API_KEY = "***REMOVED***";
+  const USERNAME = "xxx";
+  const PASSWORD = "xxx";
+  const API_KEY = "xxx";
   const ADDITIONAL_FEES = 10; // 10%
 
   /**

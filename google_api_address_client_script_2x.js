@@ -6,7 +6,7 @@
  */
 define(['N/search', 'N/runtime'], function(search, runtime) {
 	/* === VARS === */
-	const API_KEY = '***REMOVED***';
+	const API_KEY = 'xxx';
 	const GOOGLE_API = 'https://maps.googleapis.com/maps/api/js?key=' + API_KEY + '&libraries=places';
 
 	// 3 Administrator

@@ -12,9 +12,9 @@ define(["N/https", "N/search", "N/xml", "/SuiteScripts/Module/Utils"], function(
   _U
 ) {
   /** VARS **/
-  const USERNAME = "***REMOVED***";
-  const PASSWORD = "***REMOVED***";
-  const CUS_ACCOUNT = "***REMOVED***";
+  const USERNAME = "xxx";
+  const PASSWORD = "xxx";
+  const CUS_ACCOUNT = "xxx";
   const ADDITIONAL_FEES = 0; // 0%
 
   /**
